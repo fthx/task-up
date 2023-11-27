@@ -19,6 +19,7 @@ const N_ = x => x;
 
 const LOW_OPACITY = 160;
 const ICON_SIZE = 20;
+const TOOLTIP_VERTICAL_PADDING = 10;
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
@@ -69,6 +70,19 @@ class WorkspaceSeparator extends PanelMenu.Button {
     }
 });
 
+const TaskTooltip = GObject.registerClass(
+class TaskTooltip extends St.BoxLayout {
+    _init() {
+        super._init({style_class: 'window-tooltip'});
+
+        this._label = new St.Label({y_align: Clutter.ActorAlign.CENTER, text: ''});
+        this.add_child(this._label);
+        this.hide();
+
+        Main.layoutManager.addChrome(this);
+    }
+});
+
 export default class TaskUpExtension extends Extension {
     constructor(metadata) {
         super(metadata);
@@ -107,6 +121,8 @@ export default class TaskUpExtension extends Extension {
 
         Main.panel.addToStatusArea(task_button._id, task_button, -1, 'left');
         task_button.connectObject('button-press-event', (widget, event) => this._on_button_click(widget, event, task_button), this);
+        task_button.connectObject('notify::hover', (widget) => this._on_button_hover(widget), this);
+
     }
 
     _make_workspace_separator() {
@@ -165,6 +181,16 @@ export default class TaskUpExtension extends Extension {
         }
     }
 
+    _on_button_hover(task_button) {
+        if (task_button.get_hover()) {
+            this._task_tooltip.set_position(task_button.get_transformed_position()[0], Main.layoutManager.primaryMonitor.y + Main.panel.height + TOOLTIP_VERTICAL_PADDING);
+            this._task_tooltip._label.set_text(task_button._window.get_title());
+            this._task_tooltip.show();
+        } else {
+            this._task_tooltip.hide();
+        }
+    }
+
     _show_places_icon(show) {
         this._places_indicator = Main.panel.statusArea['places-menu'];
         if (this._places_indicator) {
@@ -206,6 +232,7 @@ export default class TaskUpExtension extends Extension {
 
         Main.layoutManager.connectObject('startup-complete', () => this._show_places_icon(true), this);
 
+        this._task_tooltip = new TaskTooltip();
         this._task_list = [];
         this._make_taskbar();
         this._connect_signals();
