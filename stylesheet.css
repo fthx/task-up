@@ -1,0 +1,19 @@
+.window-focused {
+  border-top: 2px solid rgba(255, 255, 255, 1);
+  padding-bottom: 2px;
+}
+
+.window-unfocused {
+  border-top: 2px solid rgba(255, 255, 255, 0);
+  padding-bottom: 2px;
+}
+
+.workspace-separator {
+  padding-top: 4px;
+  padding-bottom: 2px;
+}
+
+.leftbox-reduced-padding .panel-button {
+  /*-natural-hpadding: 4px;*/
+  -minimum-hpadding: 2px;
+}
