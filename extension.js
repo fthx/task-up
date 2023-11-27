@@ -4,6 +4,7 @@
 
 
 import Clutter from 'gi://Clutter';
+import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
@@ -20,6 +21,7 @@ const N_ = x => x;
 const LOW_OPACITY = 160;
 const ICON_SIZE = 20;
 const TOOLTIP_VERTICAL_PADDING = 10;
+const TASKBAR_REFRESH_DELAY = 300;
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
@@ -147,6 +149,17 @@ export default class TaskUpExtension extends Extension {
         }
     }
 
+    _update_taskbar() {
+        if (this._update_taskbar_timeout > 0) {
+            GLib.source_remove(this._update_taskbar_timeout);
+        }
+
+        this._update_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, TASKBAR_REFRESH_DELAY, () => {
+            this._make_taskbar();
+            this._update_taskbar_timeout = 0;
+        });
+    }
+
     _is_on_active_workspace(window) {
         return window.get_workspace() == global.workspace_manager.get_active_workspace();
     }
@@ -207,12 +220,12 @@ export default class TaskUpExtension extends Extension {
 
     _connect_signals() {
         global.workspace_manager.connectObject(
-            'active-workspace-changed', this._make_taskbar.bind(this),
-            'notify::n-workspaces', this._make_taskbar.bind(this),
+            'active-workspace-changed', this._update_taskbar.bind(this),
+            'notify::n-workspaces', this._update_taskbar.bind(this),
             this);
-        Shell.WindowTracker.get_default().connectObject('tracked-windows-changed', this._make_taskbar.bind(this), this);
-        global.display.connectObject('notify::focus-window', this._make_taskbar.bind(this), this);
-        St.TextureCache.get_default().connectObject('icon-theme-changed', this._make_taskbar.bind(this), this);
+        Shell.WindowTracker.get_default().connectObject('tracked-windows-changed', this._update_taskbar.bind(this), this);
+        global.display.connectObject('notify::focus-window', this._update_taskbar.bind(this), this);
+        St.TextureCache.get_default().connectObject('icon-theme-changed', this._update_taskbar.bind(this), this);
 
         Main.extensionManager.connectObject('extension-state-changed', () => this._show_places_icon(true), this);
     }
@@ -234,11 +247,15 @@ export default class TaskUpExtension extends Extension {
 
         this._task_tooltip = new TaskTooltip();
         this._task_list = [];
+        this._last_taskbar_call_time = 0;
         this._make_taskbar();
         this._connect_signals();
     }
 
     disable() {
+        GLib.source_remove(this._update_taskbar_timeout);
+        this._update_taskbar_timeout = 0;
+
         this._disconnect_signals();
         this._destroy_taskbar();
 
