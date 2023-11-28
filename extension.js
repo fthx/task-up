@@ -248,7 +248,7 @@ export default class TaskUpExtension extends Extension {
         this._task_tooltip = new TaskTooltip();
         this._task_list = [];
         this._last_taskbar_call_time = 0;
-        this._make_taskbar();
+        this._update_taskbar();
         this._connect_signals();
     }
 
