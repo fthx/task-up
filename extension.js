@@ -46,7 +46,8 @@ class TaskButton extends PanelMenu.Button {
             this._icon.set_gicon(this._app.get_icon());
             this.menu.setApp(this._app);
         }
-        this._id = 'task-button-' + this._window.get_id();
+
+        this._id = this._window;
     }
 });
 
@@ -94,6 +95,7 @@ export default class TaskUpExtension extends Extension {
         Main.panel.menuManager.removeMenu(task_button.menu);
         task_button.menu = null;
 
+        delete Main.panel.statusArea[task_button._id];
         task_button.destroy();
         task_button = null;
     }
@@ -107,6 +109,10 @@ export default class TaskUpExtension extends Extension {
 
     _make_task_button(window) {
         if (window.is_skip_taskbar() || (window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
+            return;
+        }
+
+        if (window in Main.panel.statusArea) {
             return;
         }
 
@@ -243,13 +249,17 @@ export default class TaskUpExtension extends Extension {
     enable() {
         Main.panel._leftBox.add_style_class_name('leftbox-reduced-padding');
 
-        Main.layoutManager.connectObject('startup-complete', () => this._show_places_icon(true), this);
+        Main.layoutManager.connectObject('startup-complete', () => {
+                this._show_places_icon(true);
 
-        this._task_tooltip = new TaskTooltip();
-        this._task_list = [];
-        this._last_taskbar_call_time = 0;
-        this._update_taskbar();
-        this._connect_signals();
+                this._task_tooltip = new TaskTooltip();
+                this._task_list = [];
+                this._last_taskbar_call_time = 0;
+                this._update_taskbar();
+                this._connect_signals();
+            },
+            this
+        )
     }
 
     disable() {
