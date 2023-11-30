@@ -19,8 +19,8 @@ const N_ = x => x;
 
 
 const LOW_OPACITY = 160;
-const ICON_SIZE = 20;
-const TOOLTIP_VERTICAL_PADDING = 10;
+const ICON_SIZE = 16;
+const TOOLTIP_VERTICAL_PADDING = 4;
 const TASKBAR_REFRESH_DELAY = 300;
 
 const TaskButton = GObject.registerClass(
@@ -28,19 +28,26 @@ class TaskButton extends PanelMenu.Button {
     _init(window) {
         super._init();
 
+        this._window = window;
+        this._desaturate_effect = new Clutter.DesaturateEffect();
+
         this._box = new St.BoxLayout({style_class: 'panel-button'});
 
         this._icon = new St.Icon();
         this._icon.set_icon_size(ICON_SIZE);
         this._icon.set_fallback_gicon(null);
         this._box.add_child(this._icon);
+
+        this._label = new St.Label({y_align: Clutter.ActorAlign.CENTER});
+        this._label.set_text('  ' + this._window.get_title());
+        this._box.add_child(this._label);
+
         this.add_child(this._box);
 
         this._menu = new AppMenu(this);
         this.setMenu(this._menu);
         Main.panel.menuManager.addMenu(this.menu);
 
-        this._window = window;
         this._app = Shell.WindowTracker.get_default().get_window_app(this._window);
         if (this._app) {
             this._icon.set_gicon(this._app.get_icon());
@@ -92,6 +99,8 @@ export default class TaskUpExtension extends Extension {
     }
 
     _pop_task_button(task_button) {
+        task_button.disconnectObject(this);
+
         Main.panel.menuManager.removeMenu(task_button.menu);
         task_button.menu = null;
 
@@ -117,20 +126,35 @@ export default class TaskUpExtension extends Extension {
         }
 
         let task_button = new TaskButton(window);
+        if (this._settings.get_boolean('show-titles')) {
+            task_button.add_style_class_name('window-button');
+        }
+        task_button._icon.visible = this._settings.get_boolean('show-icons');
+        task_button._label.visible = this._settings.get_boolean('show-titles');
+        if (this._settings.get_boolean('symbolic-icons')) {
+            task_button._icon.set_style_class_name('app-menu-icon');
+        }
+        if (!this._settings.get_boolean('colored-icons')) {
+            task_button.add_effect(task_button._desaturate_effect);
+        }
         this._task_list.push(task_button);
 
         if (window.has_focus()) {
-            task_button._icon.add_style_class_name('window-focused');
+            task_button.add_style_class_name('window-focused');
+        } else {
+            task_button.add_style_class_name('window-unfocused');
         }
 
         if (!this._is_on_active_workspace(window)) {
             task_button._icon.set_opacity(LOW_OPACITY);
+            task_button._label.set_opacity(LOW_OPACITY);
         }
 
         Main.panel.addToStatusArea(task_button._id, task_button, -1, 'left');
-        task_button.connectObject('button-press-event', (widget, event) => this._on_button_click(widget, event, task_button), this);
-        task_button.connectObject('notify::hover', (widget) => this._on_button_hover(widget), this);
-
+        task_button.connectObject('button-press-event', (task_button, event) => this._on_button_click(task_button, event), this);
+        if (this._settings.get_boolean('show-tooltip')) {
+            task_button.connectObject('notify::hover', (task_button) => this._on_button_hover(task_button), this);
+        }
     }
 
     _make_workspace_separator() {
@@ -174,10 +198,9 @@ export default class TaskUpExtension extends Extension {
         return w1.get_id() - w2.get_id();
     }
 
-    _on_button_click(widget, event, task_button) {
-        task_button.menu.close();
-
+    _on_button_click(task_button, event) {
         if (event.get_button() == Clutter.BUTTON_PRIMARY) {
+            task_button.menu.close();
             if (task_button._window.has_focus()) {
                 if (task_button._window.can_minimize() && !Main.overview.visible) {
                     task_button._window.minimize();
@@ -189,14 +212,11 @@ export default class TaskUpExtension extends Extension {
         }
 
         if (event.get_button() == Clutter.BUTTON_MIDDLE) {
+            task_button.menu.close();
             if (task_button._app.can_open_new_window()) {
                 task_button._app.open_new_window(-1);
                 Main.overview.hide();
             }
-        }
-
-        if (event.get_button() == Clutter.BUTTON_SECONDARY) {
-            task_button.menu.open();
         }
     }
 
@@ -234,9 +254,13 @@ export default class TaskUpExtension extends Extension {
         St.TextureCache.get_default().connectObject('icon-theme-changed', this._update_taskbar.bind(this), this);
 
         Main.extensionManager.connectObject('extension-state-changed', () => this._show_places_icon(true), this);
+
+        this._settings.connectObject('changed', this._update_taskbar.bind(this), this);
     }
 
     _disconnect_signals() {
+        this._settings.disconnectObject(this);
+
         global.workspace_manager.disconnectObject(this);
         Shell.WindowTracker.get_default().disconnectObject(this);
         global.display.disconnectObject(this);
@@ -249,17 +273,15 @@ export default class TaskUpExtension extends Extension {
     enable() {
         Main.panel._leftBox.add_style_class_name('leftbox-reduced-padding');
 
-        Main.layoutManager.connectObject('startup-complete', () => {
-                this._show_places_icon(true);
+        Main.layoutManager.connectObject('startup-complete', () => this._show_places_icon(true), this);
 
-                this._task_tooltip = new TaskTooltip();
-                this._task_list = [];
-                this._last_taskbar_call_time = 0;
-                this._update_taskbar();
-                this._connect_signals();
-            },
-            this
-        )
+        this._settings = this.getSettings();
+
+        this._task_tooltip = new TaskTooltip();
+        this._task_list = [];
+        this._last_taskbar_call_time = 0;
+        this._update_taskbar();
+        this._connect_signals();
     }
 
     disable() {
@@ -275,5 +297,7 @@ export default class TaskUpExtension extends Extension {
         this._show_places_icon(false);
 
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
+
+        this._settings = null;
     }
 }
