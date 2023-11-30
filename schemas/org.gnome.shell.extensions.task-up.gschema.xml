@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schemalist>
+    <schema path="/org/gnome/shell/extensions/task-up/" id="org.gnome.shell.extensions.task-up">
+
+    <key type="b" name="show-icons">
+        <default>true</default>
+        <summary>Show icons</summary>
+    </key>
+
+    <key type="b" name="show-titles">
+        <default>true</default>
+        <summary>Show titles</summary>
+    </key>
+
+    <key type="b" name="colored-icons">
+        <default>true</default>
+        <summary>Colored icons</summary>
+    </key>
+
+    <key type="b" name="symbolic-icons">
+        <default>false</default>
+        <summary>Symbolic icons</summary>
+    </key>
+
+    <key type="b" name="show-tooltip">
+        <default>true</default>
+        <summary>Show tooltip</summary>
+    </key>
+
+    </schema>
+</schemalist>
