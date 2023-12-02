@@ -207,6 +207,7 @@ export default class TaskUpExtension extends Extension {
                 }
             } else  {
                 task_button._window.activate(global.get_current_time());
+                task_button._window.focus(global.get_current_time());
                 Main.overview.hide();
             }
         }
