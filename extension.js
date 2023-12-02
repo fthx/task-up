@@ -285,8 +285,10 @@ export default class TaskUpExtension extends Extension {
     }
 
     disable() {
-        GLib.source_remove(this._update_taskbar_timeout);
-        this._update_taskbar_timeout = 0;
+        if (this._update_taskbar_timeout) {
+            GLib.source_remove(this._update_taskbar_timeout);
+            this._update_taskbar_timeout = 0;
+        }
 
         this._task_tooltip.destroy();
         this._task_tooltip = null;
