@@ -28,5 +28,21 @@
         <summary>Show tooltip</summary>
     </key>
 
+    <key type="i" name="buttons-size">
+        <default>192</default>
+        <summary>Buttons default size</summary>
+    </key>
+
+    <key type="i" name="buttons-opacity">
+        <default>160</default>
+        <summary>Buttons not on active workspace opacity</summary>
+    </key>
+
+    <key type="b" name="refresh-delay">
+        <default>true</default>
+        <summary>Task bar refresh delay</summary>
+    </key>
+
+
     </schema>
 </schemalist>
