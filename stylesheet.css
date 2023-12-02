@@ -3,10 +3,34 @@
   -minimum-hpadding: 2px;
 }
 
-.window-button > StWidget {
+.window-button-96 > StWidget {
+  -st-natural-width: 96px;
+  min-width: 24px;
+  max-width: 96px;
+}
+
+.window-button-144 > StWidget {
+  -st-natural-width: 144px;
+  min-width: 24px;
+  max-width: 144px;
+}
+
+.window-button-192 > StWidget {
   -st-natural-width: 192px;
   min-width: 24px;
   max-width: 192px;
+}
+
+.window-button-240 > StWidget {
+  -st-natural-width: 240px;
+  min-width: 24px;
+  max-width: 240px;
+}
+
+.window-button-288 > StWidget {
+  -st-natural-width: 288px;
+  min-width: 24px;
+  max-width: 288px;
 }
 
 .window-focused {

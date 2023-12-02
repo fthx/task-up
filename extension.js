@@ -18,10 +18,9 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 const N_ = x => x;
 
 
-const LOW_OPACITY = 160;
 const ICON_SIZE = 16;
 const TOOLTIP_VERTICAL_PADDING = 4;
-const TASKBAR_REFRESH_DELAY = 300;
+const REFRESH_DELAY = 300;
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
@@ -126,8 +125,9 @@ export default class TaskUpExtension extends Extension {
         }
 
         let task_button = new TaskButton(window);
+        let button_size;
         if (this._settings.get_boolean('show-titles')) {
-            task_button.add_style_class_name('window-button');
+            task_button.add_style_class_name('window-button-' + this._settings.get_int('buttons-size'));
         }
         task_button._icon.visible = this._settings.get_boolean('show-icons');
         task_button._label.visible = this._settings.get_boolean('show-titles');
@@ -146,8 +146,8 @@ export default class TaskUpExtension extends Extension {
         }
 
         if (!this._is_on_active_workspace(window)) {
-            task_button._icon.set_opacity(LOW_OPACITY);
-            task_button._label.set_opacity(LOW_OPACITY);
+            task_button._icon.set_opacity(this._settings.get_int('buttons-opacity'));
+            task_button._label.set_opacity(this._settings.get_int('buttons-opacity'));
         }
 
         Main.panel.addToStatusArea(task_button._id, task_button, -1, 'left');
@@ -180,14 +180,18 @@ export default class TaskUpExtension extends Extension {
     }
 
     _update_taskbar() {
-        if (this._update_taskbar_timeout > 0) {
-            GLib.source_remove(this._update_taskbar_timeout);
-        }
+        if (this._settings.get_boolean('refresh-delay')) {
+            if (this._update_taskbar_timeout > 0) {
+                GLib.source_remove(this._update_taskbar_timeout);
+            }
 
-        this._update_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, TASKBAR_REFRESH_DELAY, () => {
+            this._update_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, REFRESH_DELAY, () => {
+                this._make_taskbar();
+                this._update_taskbar_timeout = 0;
+            });
+        } else {
             this._make_taskbar();
-            this._update_taskbar_timeout = 0;
-        });
+        }
     }
 
     _is_on_active_workspace(window) {
