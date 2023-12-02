@@ -209,19 +209,20 @@ export default class TaskUpExtension extends Extension {
                 if (task_button._window.can_minimize() && !Main.overview.visible) {
                     task_button._window.minimize();
                 }
+
             } else  {
                 task_button._window.activate(global.get_current_time());
                 task_button._window.focus(global.get_current_time());
-                Main.overview.hide();
             }
+            Main.overview.hide();
         }
 
         if (event.get_button() == Clutter.BUTTON_MIDDLE) {
             task_button.menu.close();
             if (task_button._app.can_open_new_window()) {
                 task_button._app.open_new_window(-1);
-                Main.overview.hide();
             }
+            Main.overview.hide();
         }
     }
 
