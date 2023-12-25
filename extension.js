@@ -15,7 +15,6 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
-const N_ = x => x;
 
 
 const ICON_SIZE = 16;
@@ -112,7 +111,7 @@ export default class TaskUpExtension extends Extension {
         for (let task_button of this._task_list) {
             this._pop_task_button(task_button);
         }
-        this._task_list = [];
+        this._task_list = null;
     }
 
     _make_task_button(window) {
@@ -125,7 +124,6 @@ export default class TaskUpExtension extends Extension {
         }
 
         let task_button = new TaskButton(window);
-        let button_size;
         if (this._settings.get_boolean('show-titles')) {
             task_button.add_style_class_name('window-button-' + this._settings.get_int('buttons-size'));
         }
@@ -166,6 +164,7 @@ export default class TaskUpExtension extends Extension {
 
     _make_taskbar() {
         this._destroy_taskbar();
+        this._task_list = [];
 
         this._workspaces_number = global.workspace_manager.get_n_workspaces();
         for (let workspace_index = 0; workspace_index < this._workspaces_number; workspace_index++) {
@@ -301,6 +300,7 @@ export default class TaskUpExtension extends Extension {
 
         this._disconnect_signals();
         this._destroy_taskbar();
+        this._last_taskbar_call_time = null;
 
         this._show_places_icon(false);
 
