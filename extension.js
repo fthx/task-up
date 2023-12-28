@@ -243,9 +243,16 @@ export default class TaskUpExtension extends Extension {
 
         if (this._settings.get_boolean('raise-window')) {
             if (task_button.get_hover()) {
-                task_button._window.raise();
+                this._raise_window_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._settings.get_int('raise-delay'), () => {
+                    if (task_button.get_hover()) {
+                        task_button._window.raise();
+                        this._raise_window_timeout = 0;
+                    }
+                });
             } else {
-                global.display.get_focus_window().raise();
+                if (global.display.get_focus_window()) {
+                    global.display.get_focus_window().raise();
+                }
             }
         }
     }
@@ -308,6 +315,11 @@ export default class TaskUpExtension extends Extension {
         if (this._update_taskbar_timeout) {
             GLib.source_remove(this._update_taskbar_timeout);
             this._update_taskbar_timeout = 0;
+        }
+
+        if (this._raise_window_timeout) {
+            GLib.source_remove(this._raise_window_timeout);
+            this._raise_window_timeout = 0;
         }
 
         this._task_tooltip.destroy();

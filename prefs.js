@@ -94,6 +94,19 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         const group3 = new Adw.PreferencesGroup();
         page.add(group3);
 
+        const raise_delay = new Gtk.Adjustment({
+            lower: 0,
+            upper: 1000,
+            step_increment: 50,
+        });
+
+        const row_raise = new Adw.SpinRow({
+            title: 'Delay befor raising window on hover (default: 200 ms)',
+            adjustment: raise_delay
+        });
+        group2.add(row_raise);
+        window._settings.bind('raise-delay', row_raise, 'value', Gio.SettingsBindFlags.DEFAULT);
+
         const row_delay = new Adw.SwitchRow({
             title: 'Task bar refresh delay after action (default: ON)',
             subtitle: 'ON = fewer refreshes, medium reactivity\nOFF = more refreshes, high reactivity'
