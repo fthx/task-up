@@ -33,6 +33,18 @@
   max-width: 288px;
 }
 
+.window-button-336 > StWidget {
+  -st-natural-width: 336px;
+  min-width: 24px;
+  max-width: 336px;
+}
+
+.window-button-384 > StWidget {
+  -st-natural-width: 384px;
+  min-width: 24px;
+  max-width: 384px;
+}
+
 .window-focused {
   margin-right: 3px;
   margin-left: 3px;

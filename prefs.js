@@ -19,6 +19,12 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         const group1 = new Adw.PreferencesGroup();
         page.add(group1);
 
+        const row_workspace = new Adw.SwitchRow({
+            title: 'Show tasks on active workspace only',
+        });
+        group1.add(row_workspace);
+        window._settings.bind('active-workspace', row_workspace, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         const row_icons = new Adw.SwitchRow({
             title: 'Show icons',
         });
@@ -44,10 +50,16 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         window._settings.bind('symbolic-icons', row_symbolic, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_tooltip = new Adw.SwitchRow({
-            title: 'Show tooltip',
+            title: 'Show tooltip on hover',
         });
         group1.add(row_tooltip);
         window._settings.bind('show-tooltip', row_tooltip, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        const row_window = new Adw.SwitchRow({
+            title: 'Raise window on hover',
+        });
+        group1.add(row_window);
+        window._settings.bind('raise-window', row_window, 'active', Gio.SettingsBindFlags.DEFAULT);
 
 
         const group2 = new Adw.PreferencesGroup();
@@ -55,7 +67,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
 
         const adjustment_size = new Gtk.Adjustment({
             lower: 96,
-            upper: 288,
+            upper: 384,
             step_increment: 48,
         });
 
