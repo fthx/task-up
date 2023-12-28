@@ -3,6 +3,11 @@
 <schemalist>
     <schema path="/org/gnome/shell/extensions/task-up/" id="org.gnome.shell.extensions.task-up">
 
+    <key type="b" name="active-workspace">
+        <default>false</default>
+        <summary>Show tasks on active workspace only</summary>
+    </key>
+
     <key type="b" name="show-icons">
         <default>true</default>
         <summary>Show icons</summary>
@@ -25,7 +30,12 @@
 
     <key type="b" name="show-tooltip">
         <default>true</default>
-        <summary>Show tooltip</summary>
+        <summary>Show tooltip on hover</summary>
+    </key>
+
+    <key type="b" name="raise-window">
+        <default>true</default>
+        <summary>Raise window on hover</summary>
     </key>
 
     <key type="i" name="buttons-size">
