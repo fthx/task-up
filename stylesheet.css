@@ -79,6 +79,8 @@
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
+  background-color: rgba(255, 255, 255, 0.15);
+
   transition-duration: 0.2s;
 }
 
@@ -93,6 +95,8 @@
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
+
+  background-color: rgba(255, 255, 255, 0.15);
 
   transition-duration: 0.2s;
 }
