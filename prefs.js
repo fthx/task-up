@@ -37,18 +37,6 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group1.add(row_titles);
         window._settings.bind('show-titles', row_titles, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-        const row_colored = new Adw.SwitchRow({
-            title: 'Colored icons',
-        });
-        group1.add(row_colored);
-        window._settings.bind('colored-icons', row_colored, 'active', Gio.SettingsBindFlags.DEFAULT);
-
-        const row_symbolic = new Adw.SwitchRow({
-            title: 'Symbolic icons',
-        });
-        group1.add(row_symbolic);
-        window._settings.bind('symbolic-icons', row_symbolic, 'active', Gio.SettingsBindFlags.DEFAULT);
-
         const row_tooltip = new Adw.SwitchRow({
             title: 'Show tooltip on hover',
         });
@@ -64,6 +52,24 @@ export default class TaskUpPreferences extends ExtensionPreferences {
 
         const group2 = new Adw.PreferencesGroup();
         page.add(group2);
+
+        const row_border = new Adw.SwitchRow({
+            title: 'Button border only on top',
+        });
+        group2.add(row_border);
+        window._settings.bind('border-top', row_border, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        const row_colored = new Adw.SwitchRow({
+            title: 'Colored icons',
+        });
+        group2.add(row_colored);
+        window._settings.bind('colored-icons', row_colored, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        const row_symbolic = new Adw.SwitchRow({
+            title: 'Symbolic icons',
+        });
+        group2.add(row_symbolic);
+        window._settings.bind('symbolic-icons', row_symbolic, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment_size = new Gtk.Adjustment({
             lower: 96,
@@ -101,7 +107,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         });
 
         const row_raise = new Adw.SpinRow({
-            title: 'Delay befor raising window on hover (default: 200 ms)',
+            title: 'Delay before raising window on hover (default: 500 ms)',
             adjustment: raise_delay
         });
         group2.add(row_raise);

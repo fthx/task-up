@@ -17,9 +17,9 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 
-const ICON_SIZE = 18;
-const TOOLTIP_VERTICAL_PADDING = 4;
-const REFRESH_DELAY = 300;
+const ICON_SIZE = 18; // px
+const TOOLTIP_VERTICAL_PADDING = 4; // px
+const REFRESH_DELAY = 300; // ms
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
@@ -138,9 +138,21 @@ export default class TaskUpExtension extends Extension {
         this._task_list.push(task_button);
 
         if (window.has_focus()) {
-            task_button.add_style_class_name('window-focused');
+            if (this._settings.get_boolean('border-top')) {
+                task_button.add_style_class_name('window-focused-top');
+            } else {
+                task_button.add_style_class_name('window-focused');
+            }
         } else {
-            task_button.add_style_class_name('window-unfocused');
+            if (this._settings.get_boolean('border-top')) {
+                if (this._settings.get_boolean('show-titles')) {
+                    task_button.add_style_class_name('window-unfocused-top');
+                } else {
+                    task_button.add_style_class_name('window-unfocused-top-icon');
+                }
+            } else {
+                task_button.add_style_class_name('window-unfocused');
+            }
         }
 
         if (!this._is_on_active_workspace(window)) {
@@ -165,18 +177,18 @@ export default class TaskUpExtension extends Extension {
         this._task_list = [];
 
         if (this._settings.get_boolean('active-workspace')) {
-            this._windows_list = global.workspace_manager.get_active_workspace().list_windows().sort(this._sort_windows);
-            for (let window of this._windows_list) {
+            let windows_list = global.workspace_manager.get_active_workspace().list_windows().sort(this._sort_windows);
+            for (let window of windows_list) {
                 this._make_task_button(window);
             }
         } else {
-            this._workspaces_number = global.workspace_manager.get_n_workspaces();
-            for (let workspace_index = 0; workspace_index < this._workspaces_number; workspace_index++) {
-                this._windows_list = global.workspace_manager.get_workspace_by_index(workspace_index).list_windows().sort(this._sort_windows);
-                if ((workspace_index > 0) && (!Meta.prefs_get_dynamic_workspaces() || (workspace_index < this._workspaces_number - 1))) {
+            let workspaces_number = global.workspace_manager.get_n_workspaces();
+            for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
+                let windows_list = global.workspace_manager.get_workspace_by_index(workspace_index).list_windows().sort(this._sort_windows);
+                if ((workspace_index > 0) && (!Meta.prefs_get_dynamic_workspaces() || (workspace_index < workspaces_number - 1))) {
                     this._make_workspace_separator(workspace_index);
                 }
-                for (let window of this._windows_list) {
+                for (let window of windows_list) {
                     this._make_task_button(window);
                 }
             }
@@ -231,6 +243,10 @@ export default class TaskUpExtension extends Extension {
     }
 
     _on_button_hover(task_button) {
+        if (!task_button) {
+            return;
+        }
+
         if (this._settings.get_boolean('show-tooltip')) {
             if (task_button.get_hover()) {
                 this._task_tooltip.set_position(task_button.get_transformed_position()[0], Main.layoutManager.primaryMonitor.y + Main.panel.height + TOOLTIP_VERTICAL_PADDING);
@@ -253,20 +269,21 @@ export default class TaskUpExtension extends Extension {
                 if (global.display.get_focus_window()) {
                     global.display.get_focus_window().raise();
                 }
+                this._raise_window_timeout = 0;
             }
         }
     }
 
     _show_places_icon(show) {
-        this._places_indicator = Main.panel.statusArea['places-menu'];
-        if (this._places_indicator) {
-            this._places_indicator.remove_child(this._places_indicator.get_first_child());
+        let places_indicator = Main.panel.statusArea['places-menu'];
+        if (places_indicator) {
+            places_indicator.remove_child(places_indicator.get_first_child());
             if (show) {
-                this._places_icon = new St.Icon({icon_name: 'folder-symbolic', style_class: 'system-status-icon'});
-                this._places_indicator.add_child(this._places_icon);
+                let places_icon = new St.Icon({icon_name: 'folder-symbolic', style_class: 'system-status-icon'});
+                places_indicator.add_child(places_icon);
             } else {
-                this._places_label = new St.Label({text: _('Places'), y_expand: true, y_align: Clutter.ActorAlign.CENTER});
-                this._places_indicator.add_child(this._places_label);
+                let places_label = new St.Label({text: _('Places'), y_expand: true, y_align: Clutter.ActorAlign.CENTER});
+                places_indicator.add_child(places_label);
             }
         }
     }
@@ -314,12 +331,12 @@ export default class TaskUpExtension extends Extension {
     disable() {
         if (this._update_taskbar_timeout) {
             GLib.source_remove(this._update_taskbar_timeout);
-            this._update_taskbar_timeout = 0;
+            this._update_taskbar_timeout = null;
         }
 
         if (this._raise_window_timeout) {
             GLib.source_remove(this._raise_window_timeout);
-            this._raise_window_timeout = 0;
+            this._raise_window_timeout = null;
         }
 
         this._task_tooltip.destroy();

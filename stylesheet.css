@@ -1,6 +1,6 @@
 .leftbox-reduced-padding .panel-button {
   /*-natural-hpadding: 4px;*/
-  -minimum-hpadding: 2px;
+  -minimum-hpadding: 4px;
 }
 
 .window-button-96 > StWidget {
@@ -50,7 +50,10 @@
   margin-left: 3px;
   margin-top: 3px;
   margin-bottom: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+
+  border: 1px solid rgba(255, 255, 255, 1);
+
+  transition-duration: 0.2s;
 }
 
 .window-unfocused {
@@ -58,7 +61,55 @@
   margin-left: 3px;
   margin-top: 3px;
   margin-bottom: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  border: 1px solid rgba(255, 255, 255, 0.4);
+
+  transition-duration: 0.2s;
+}
+
+.window-focused-top {
+  margin-right: 3px;
+  margin-left: 3px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+
+  border-top: 1px solid rgba(255, 255, 255, 1);
+  border-bottom: 1px hidden rgba(255, 255, 255, 0);
+  border-left: 1px hidden rgba(255, 255, 255, 0);
+  border-right: 1px hidden rgba(255, 255, 255, 0);
+  border-radius: 0px;
+
+  transition-duration: 0.2s;
+}
+
+.window-unfocused-top {
+  margin-right: 3px;
+  margin-left: 3px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px hidden rgba(255, 255, 255, 0);
+  border-left: 1px hidden rgba(255, 255, 255, 0);
+  border-right: 1px hidden rgba(255, 255, 255, 0);
+  border-radius: 0px;
+
+  transition-duration: 0.2s;
+}
+
+.window-unfocused-top-icon {
+  margin-right: 3px;
+  margin-left: 3px;
+  margin-top: 3px;
+  margin-bottom: 3px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0);
+  border-bottom: 1px hidden rgba(255, 255, 255, 0);
+  border-left: 1px hidden rgba(255, 255, 255, 0);
+  border-right: 1px hidden rgba(255, 255, 255, 0);
+  border-radius: 0px;
+
+  transition-duration: 0.2s;
 }
 
 .workspace-separator {
@@ -73,8 +124,10 @@
   padding-right: 10px;
   padding-top: 4px;
   padding-bottom: 4px;
+
   background-color: rgba(0, 0, 0, 0.7);
   color: rgba(255, 255, 255, 0.7);
+
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 16px;
 }
