@@ -62,7 +62,7 @@
   margin-top: 3px;
   margin-bottom: 3px;
 
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 
   transition-duration: 0.2s;
 }
@@ -79,7 +79,7 @@
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.1);
 
   transition-duration: 0.2s;
 }
@@ -90,13 +90,13 @@
   margin-top: 3px;
   margin-bottom: 3px;
 
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.1);
 
   transition-duration: 0.2s;
 }

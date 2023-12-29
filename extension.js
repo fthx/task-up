@@ -135,7 +135,6 @@ export default class TaskUpExtension extends Extension {
         if (!this._settings.get_boolean('colored-icons')) {
             task_button.add_effect(task_button._desaturate_effect);
         }
-        this._task_list.push(task_button);
 
         if (window.has_focus()) {
             if (this._settings.get_boolean('border-top')) {
@@ -159,6 +158,8 @@ export default class TaskUpExtension extends Extension {
             task_button._icon.set_opacity(this._settings.get_int('buttons-opacity'));
             task_button._label.set_opacity(this._settings.get_int('buttons-opacity'));
         }
+
+        this._task_list.push(task_button);
 
         Main.panel.addToStatusArea(task_button._id, task_button, -1, 'left');
         task_button.connectObject('button-press-event', (task_button, event) => this._on_button_click(task_button, event), this);
@@ -260,7 +261,7 @@ export default class TaskUpExtension extends Extension {
         if (this._settings.get_boolean('raise-window')) {
             if (task_button.get_hover()) {
                 this._raise_window_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._settings.get_int('raise-delay'), () => {
-                    if (task_button.get_hover()) {
+                    if (task_button && this._task_list.includes(task_button) && task_button.get_hover()) {
                         task_button._window.raise();
                         this._raise_window_timeout = 0;
                     }
