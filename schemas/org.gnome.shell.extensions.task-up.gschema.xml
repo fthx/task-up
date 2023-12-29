@@ -18,16 +18,6 @@
         <summary>Show titles</summary>
     </key>
 
-    <key type="b" name="colored-icons">
-        <default>true</default>
-        <summary>Colored icons</summary>
-    </key>
-
-    <key type="b" name="symbolic-icons">
-        <default>false</default>
-        <summary>Symbolic icons</summary>
-    </key>
-
     <key type="b" name="show-tooltip">
         <default>true</default>
         <summary>Show tooltip on hover</summary>
@@ -36,6 +26,21 @@
     <key type="b" name="raise-window">
         <default>true</default>
         <summary>Raise window on hover</summary>
+    </key>
+
+    <key type="b" name="border-top">
+        <default>false</default>
+        <summary>Button border only on top</summary>
+    </key>
+
+    <key type="b" name="colored-icons">
+        <default>true</default>
+        <summary>Colored icons</summary>
+    </key>
+
+    <key type="b" name="symbolic-icons">
+        <default>false</default>
+        <summary>Symbolic icons</summary>
     </key>
 
     <key type="i" name="buttons-size">
@@ -49,7 +54,7 @@
     </key>
 
     <key type="i" name="raise-delay">
-        <default>200</default>
+        <default>500</default>
         <summary>Delay befor raising window on hover</summary>
     </key>
 
