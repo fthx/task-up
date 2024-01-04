@@ -29,7 +29,7 @@
     </key>
 
     <key type="b" name="border-top">
-        <default>false</default>
+        <default>true</default>
         <summary>Button border only on top</summary>
     </key>
 
