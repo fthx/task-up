@@ -79,7 +79,9 @@
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
-  background-color: rgba(255, 255, 255, 0.1);
+  background-gradient-start: rgba(255, 255, 255, 0.20);
+  background-gradient-end: rgba(255, 255, 255, 0.0);
+  background-gradient-direction: vertical;
 
   transition-duration: 0.2s;
 }
@@ -96,7 +98,9 @@
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
-  background-color: rgba(255, 255, 255, 0.1);
+  background-gradient-start: rgba(255, 255, 255, 0.1);
+  background-gradient-end: rgba(255, 255, 255, 0.0);
+  background-gradient-direction: vertical;
 
   transition-duration: 0.2s;
 }
