@@ -77,9 +77,9 @@
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
-  border-radius: 0px;
+  border-radius: 2px;
 
-  background-gradient-start: rgba(255, 255, 255, 0.20);
+  background-gradient-start: rgba(255, 255, 255, 0.3);
   background-gradient-end: rgba(255, 255, 255, 0.0);
   background-gradient-direction: vertical;
 
@@ -96,9 +96,9 @@
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
-  border-radius: 0px;
+  border-radius: 2px;
 
-  background-gradient-start: rgba(255, 255, 255, 0.1);
+  background-gradient-start: rgba(255, 255, 255, 0.15);
   background-gradient-end: rgba(255, 255, 255, 0.0);
   background-gradient-direction: vertical;
 

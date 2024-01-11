@@ -112,12 +112,5 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         });
         group2.add(row_raise);
         window._settings.bind('raise-delay', row_raise, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        const row_delay = new Adw.SwitchRow({
-            title: 'Task bar refresh delay after action (default: ON)',
-            subtitle: 'ON = fewer refreshes, medium reactivity\nOFF = more refreshes, high reactivity'
-        });
-        group3.add(row_delay);
-        window._settings.bind('refresh-delay', row_delay, 'active', Gio.SettingsBindFlags.DEFAULT);
     }
 }
