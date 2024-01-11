@@ -55,14 +55,8 @@
 
     <key type="i" name="raise-delay">
         <default>500</default>
-        <summary>Delay befor raising window on hover</summary>
+        <summary>Delay before raising window on hover</summary>
     </key>
-
-    <key type="b" name="refresh-delay">
-        <default>true</default>
-        <summary>Task bar refresh delay</summary>
-    </key>
-
 
     </schema>
 </schemalist>
