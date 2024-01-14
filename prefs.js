@@ -107,7 +107,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         });
 
         const row_raise = new Adw.SpinRow({
-            title: 'Delay before raising window on hover (default: 500 ms)',
+            title: 'Delay before raising window and/or tooltip on hover (default: 500 ms)',
             adjustment: raise_delay
         });
         group2.add(row_raise);

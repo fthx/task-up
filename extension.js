@@ -42,7 +42,6 @@ class TaskButton extends PanelMenu.Button {
         this.add_child(this._box);
 
         this.setMenu(new AppMenu(this));
-        Main.panel.menuManager.addMenu(this.menu);
 
         this._update_title();
         this._update_app();
@@ -97,6 +96,7 @@ class TaskButton extends PanelMenu.Button {
         if (this._window.has_focus()) {
             if (this._settings.get_boolean('border-top')) {
                 this.remove_style_class_name('window-unfocused-top');
+                this.remove_style_class_name('window-unfocused-top-icon');
                 this.add_style_class_name('window-focused-top');
             } else {
                 this.remove_style_class_name('window-unfocused');
@@ -104,11 +104,10 @@ class TaskButton extends PanelMenu.Button {
             }
         } else {
             if (this._settings.get_boolean('border-top')) {
+                this.remove_style_class_name('window-focused-top');
                 if (this._settings.get_boolean('show-titles')) {
-                    this.remove_style_class_name('window-focused-top');
                     this.add_style_class_name('window-unfocused-top');
                 } else {
-                    this.remove_style_class_name('window-focused-top');
                     this.add_style_class_name('window-unfocused-top-icon');
                 }
             } else {
@@ -133,13 +132,20 @@ class TaskButton extends PanelMenu.Button {
     }
 
     _destroy() {
+        if (this._is_destroying) {
+            return;
+        }
+        this._is_destroying = true;
+
         global.display.disconnectObject(this);
         global.workspace_manager.disconnectObject(this);
         this._window.disconnectObject(this);
 
-        delete Main.panel.statusArea[this._id];
+        this._desaturate_effect = null;
 
+        delete Main.panel.statusArea[this._id];
         this.menu = null;
+
         super.destroy();
     }
 });
@@ -197,10 +203,8 @@ class TaskBar extends GObject.Object {
             let task_button = this._task_list.get(window);
             this._task_list.delete(window);
 
-            if (this.task_button) {
-                task_button.disconnectObject(this);
-                task_button._destroy();
-            }
+            task_button.disconnectObject(this);
+            task_button._destroy();
         }
 
         this._task_list.clear();
@@ -225,23 +229,16 @@ class TaskBar extends GObject.Object {
     _on_button_click(task_button, event) {
         if (event.get_button() == Clutter.BUTTON_PRIMARY) {
             task_button.menu.close();
+
             if (task_button._window.has_focus()) {
                 if (task_button._window.can_minimize() && !Main.overview.visible) {
                     task_button._window.minimize();
                 }
-
             } else  {
                 task_button._window.activate(global.get_current_time());
                 task_button._window.focus(global.get_current_time());
             }
-            Main.overview.hide();
-        }
 
-        if (event.get_button() == Clutter.BUTTON_MIDDLE) {
-            task_button.menu.close();
-            if (task_button._app.can_open_new_window()) {
-                task_button._app.open_new_window(-1);
-            }
             Main.overview.hide();
         }
     }
@@ -251,30 +248,34 @@ class TaskBar extends GObject.Object {
             return;
         }
 
-        if (this._settings.get_boolean('show-tooltip')) {
-            if (task_button.get_hover()) {
-                this._task_tooltip.set_position(task_button.get_transformed_position()[0], Main.layoutManager.primaryMonitor.y + Main.panel.height + TOOLTIP_VERTICAL_PADDING);
-                this._task_tooltip._label.set_text(task_button._window.get_title());
-                this._task_tooltip.show();
-            } else {
+        if (task_button.get_hover()) {
+            this._raise_window_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._settings.get_int('raise-delay'), () => {
+                if (task_button && task_button.get_hover()) {
+                    if (this._settings.get_boolean('show-tooltip')) {
+                        this._task_tooltip.set_position(task_button.get_transformed_position()[0], Main.layoutManager.primaryMonitor.y + Main.panel.height + TOOLTIP_VERTICAL_PADDING);
+                        this._task_tooltip._label.set_text(task_button._window.get_title());
+                        this._task_tooltip.show();
+                    }
+
+                    if (this._settings.get_boolean('raise-window')) {
+                        task_button._window.raise();
+                    }
+
+                    this._raise_window_timeout = 0;
+                }
+            });
+        } else {
+            if (this._settings.get_boolean('show-tooltip')) {
                 this._task_tooltip.hide();
             }
-        }
 
-        if (this._settings.get_boolean('raise-window')) {
-            if (task_button.get_hover()) {
-                this._raise_window_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, this._settings.get_int('raise-delay'), () => {
-                    if (task_button && task_button.get_hover()) {
-                        task_button._window.raise();
-                        this._raise_window_timeout = 0;
-                    }
-                });
-            } else {
+            if (this._settings.get_boolean('raise-window')) {
                 if (global.display.get_focus_window()) {
                     global.display.get_focus_window().raise();
                 }
-                this._raise_window_timeout = 0;
             }
+
+            this._raise_window_timeout = 0;
         }
     }
 
@@ -294,8 +295,8 @@ class TaskBar extends GObject.Object {
 
     _connect_signals() {
         global.display.connectObject('window-created', (display, window) => this._make_task_button(window), this);
-
         Main.extensionManager.connectObject('extension-state-changed', () => this._show_places_icon(true), this);
+
         this._settings.connectObject('changed', this._make_taskbar.bind(this), this);
     }
 
@@ -305,6 +306,7 @@ class TaskBar extends GObject.Object {
         Main.extensionManager.disconnectObject(this);
         Main.layoutManager.disconnectObject(this);
         global.display.disconnectObject(this);
+        Main.sessionMode.disconnectObject(this);
     }
 
     _destroy() {
@@ -338,5 +340,6 @@ export default class TaskUpExtension extends Extension {
 
     disable() {
         this._taskbar._destroy();
+        this._taskbar = null;
     }
 }
