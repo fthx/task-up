@@ -241,6 +241,16 @@ class TaskBar extends GObject.Object {
 
             Main.overview.hide();
         }
+
+        if (event.get_button() == Clutter.BUTTON_MIDDLE) {
+            task_button.menu.close();
+
+            if (task_button._app.can_open_new_window()) {
+                task_button._app.open_new_window(-1);
+            }
+
+            Main.overview.hide();
+        }
     }
 
     _on_button_hover(task_button) {
