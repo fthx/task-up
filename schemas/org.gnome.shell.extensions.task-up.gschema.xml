@@ -55,7 +55,7 @@
 
     <key type="i" name="raise-delay">
         <default>500</default>
-        <summary>Delay before raising window on hover</summary>
+        <summary>Delay before raising window and/or tooltip on hover</summary>
     </key>
 
     </schema>
