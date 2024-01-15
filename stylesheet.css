@@ -48,8 +48,8 @@
 .window-focused {
   margin-right: 3px;
   margin-left: 3px;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0px;
+  margin-bottom: 2px;
 
   border: 1px solid rgba(255, 255, 255, 1);
 
@@ -59,8 +59,8 @@
 .window-unfocused {
   margin-right: 3px;
   margin-left: 3px;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0px;
+  margin-bottom: 2px;
 
   border: 1px solid rgba(255, 255, 255, 0.3);
 
@@ -70,10 +70,10 @@
 .window-focused-top {
   margin-right: 3px;
   margin-left: 3px;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0px;
+  margin-bottom: 2px;
 
-  border-top: 1px solid rgba(255, 255, 255, 1);
+  border-top: 2px solid rgba(255, 255, 255, 1);
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
@@ -89,10 +89,10 @@
 .window-unfocused-top {
   margin-right: 3px;
   margin-left: 3px;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0px;
+  margin-bottom: 2px;
 
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid rgba(255, 255, 255, 0.3);
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
@@ -108,23 +108,16 @@
 .window-unfocused-top-icon {
   margin-right: 3px;
   margin-left: 3px;
-  margin-top: 3px;
-  margin-bottom: 3px;
+  margin-top: 0px;
+  margin-bottom: 2px;
 
-  border-top: 1px solid rgba(255, 255, 255, 0);
+  border-top: 2px solid rgba(255, 255, 255, 0);
   border-bottom: 1px hidden rgba(255, 255, 255, 0);
   border-left: 1px hidden rgba(255, 255, 255, 0);
   border-right: 1px hidden rgba(255, 255, 255, 0);
   border-radius: 0px;
 
   transition-duration: 0.2s;
-}
-
-.workspace-separator {
-  margin-right: 0px;
-  margin-left: 0px;
-  margin-top: 4px;
-  margin-bottom: 0px;
 }
 
 .window-tooltip {

@@ -71,6 +71,10 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group2.add(row_symbolic);
         window._settings.bind('symbolic-icons', row_symbolic, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+
+        const group3 = new Adw.PreferencesGroup();
+        page.add(group3);
+
         const adjustment_size = new Gtk.Adjustment({
             lower: 96,
             upper: 384,
@@ -81,7 +85,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Buttons default size (default: 192 px)',
             adjustment: adjustment_size
         });
-        group2.add(row_size);
+        group3.add(row_size);
         window._settings.bind('buttons-size', row_size, 'value', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment_opacity = new Gtk.Adjustment({
@@ -94,11 +98,8 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Buttons not on active workspace opacity (default: 160)',
             adjustment: adjustment_opacity
         });
-        group2.add(row_opacity);
+        group3.add(row_opacity);
         window._settings.bind('buttons-opacity', row_opacity, 'value', Gio.SettingsBindFlags.DEFAULT);
-
-        const group3 = new Adw.PreferencesGroup();
-        page.add(group3);
 
         const raise_delay = new Gtk.Adjustment({
             lower: 0,
@@ -110,7 +111,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Delay before raising window and/or tooltip on hover (default: 500 ms)',
             adjustment: raise_delay
         });
-        group2.add(row_raise);
+        group3.add(row_raise);
         window._settings.bind('raise-delay', row_raise, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 }
