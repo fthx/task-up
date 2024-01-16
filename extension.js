@@ -22,11 +22,12 @@ const TOOLTIP_VERTICAL_PADDING = 4; // px
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
-    _init(settings, window) {
+    _init(settings, window, task_list) {
         super._init();
 
         this._settings = settings;
         this._window = window;
+        this._task_list = task_list;
         this._desaturate_effect = new Clutter.DesaturateEffect();
 
         this._box = new St.BoxLayout({style_class: 'panel-button'});
@@ -145,6 +146,7 @@ class TaskButton extends PanelMenu.Button {
 
         delete Main.panel.statusArea[this._id];
         this.menu = null;
+        this._task_list.delete(this._window);
 
         super.destroy();
     }
@@ -187,10 +189,12 @@ class TaskBar extends GObject.Object {
             return;
         }
 
-        let task_button = new TaskButton(this._settings, window);
-        this._task_list.set(window, task_button);
+        let task_button = new TaskButton(this._settings, window, this._task_list);
+        task_button._index = [window.get_workspace().index(), window.get_id()];
 
-        Main.panel.addToStatusArea(task_button._id, task_button, -1, 'left');
+        let position = this._new_button_position(task_button);
+        Main.panel.addToStatusArea(task_button._id, task_button, position, 'left');
+        this._task_list.set(window, task_button);
 
         task_button.connectObject(
             'button-press-event', (task_button, event) => this._on_button_click(task_button, event),
@@ -198,10 +202,22 @@ class TaskBar extends GObject.Object {
             this);
     }
 
+    _new_button_position(new_task_button) {
+        let task_button_values = this._task_list.values();
+        let task_position = 0;
+
+        for (let task_button of task_button_values) {
+            if (new_task_button._index > task_button._index) {
+                task_position++;
+            }
+        }
+
+        return task_position + 1;
+    }
+
     _destroy_taskbar() {
         for (let window of this._task_list.keys()) {
             let task_button = this._task_list.get(window);
-            this._task_list.delete(window);
 
             task_button.disconnectObject(this);
             task_button._destroy();
@@ -292,7 +308,7 @@ class TaskBar extends GObject.Object {
     _show_places_icon(show) {
         let places_indicator = Main.panel.statusArea['places-menu'];
         if (places_indicator) {
-            places_indicator.remove_child(places_indicator.get_first_child());
+            places_indicator.remove_child(places_indicator.first_child);
             if (show) {
                 let places_icon = new St.Icon({icon_name: 'folder-symbolic', style_class: 'system-status-icon'});
                 places_indicator.add_child(places_icon);
@@ -329,10 +345,10 @@ class TaskBar extends GObject.Object {
         this._task_tooltip = null;
 
         this._disconnect_signals();
-
         this._destroy_taskbar();
-        this._show_places_icon(false);
+        this._task_list = null;
 
+        this._show_places_icon(false);
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
 
         this._settings = null;
