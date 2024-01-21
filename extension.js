@@ -171,7 +171,8 @@ class TaskBar extends GObject.Object {
         this._settings = settings;
 
         Main.panel._leftBox.add_style_class_name('leftbox-reduced-padding');
-        Main.layoutManager.connectObject('startup-complete', () => this._show_places_icon(true), this);
+        this._task_position_offset = 1;
+        this._show_places_icon(true);
 
         this._task_tooltip = new TaskTooltip();
 
@@ -212,7 +213,7 @@ class TaskBar extends GObject.Object {
             }
         }
 
-        return task_position + 1;
+        return task_position + this._task_position_offset;
     }
 
     _destroy_taskbar() {
@@ -308,6 +309,8 @@ class TaskBar extends GObject.Object {
     _show_places_icon(show) {
         let places_indicator = Main.panel.statusArea['places-menu'];
         if (places_indicator) {
+            this._task_position_offset++;
+
             places_indicator.remove_child(places_indicator.first_child);
             if (show) {
                 let places_icon = new St.Icon({icon_name: 'folder-symbolic', style_class: 'system-status-icon'});
@@ -347,6 +350,7 @@ class TaskBar extends GObject.Object {
         this._disconnect_signals();
         this._destroy_taskbar();
         this._task_list = null;
+        this._task_position_offset = null;
 
         this._show_places_icon(false);
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
