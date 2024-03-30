@@ -54,7 +54,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         page.add(group2);
 
         const row_border = new Adw.SwitchRow({
-            title: 'Button border only on top',
+            title: 'Button gradient',
         });
         group2.add(row_border);
         window._settings.bind('border-top', row_border, 'active', Gio.SettingsBindFlags.DEFAULT);
@@ -82,7 +82,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         });
 
         const row_size = new Adw.SpinRow({
-            title: 'Buttons default size (default: 192 px)',
+            title: 'Button maximum size (default: 192 px)',
             adjustment: adjustment_size
         });
         group3.add(row_size);
@@ -95,7 +95,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         });
 
         const row_opacity = new Adw.SpinRow({
-            title: 'Buttons not on active workspace opacity (default: 160)',
+            title: 'Button not on active workspace opacity (default: 160)',
             adjustment: adjustment_opacity
         });
         group3.add(row_opacity);
