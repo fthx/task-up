@@ -8,6 +8,11 @@
         <summary>Show activities indicator</summary>
     </key>
 
+    <key type="b" name="show-favorites">
+        <default>true</default>
+        <summary>Show favorites menu</summary>
+    </key>
+
     <key type="b" name="active-workspace">
         <default>false</default>
         <summary>Show tasks on active workspace only</summary>
