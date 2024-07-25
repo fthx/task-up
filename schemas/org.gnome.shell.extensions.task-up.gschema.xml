@@ -3,6 +3,11 @@
 <schemalist>
     <schema path="/org/gnome/shell/extensions/task-up/" id="org.gnome.shell.extensions.task-up">
 
+    <key type="b" name="show-activities">
+        <default>false</default>
+        <summary>Show activities indicator</summary>
+    </key>
+
     <key type="b" name="active-workspace">
         <default>false</default>
         <summary>Show tasks on active workspace only</summary>
