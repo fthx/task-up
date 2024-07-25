@@ -3,6 +3,18 @@
   -minimum-hpadding: 4px;
 }
 
+.workspace-button {
+  margin-right: 3px;
+  margin-left: 3px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 6px;
+
+  transition-duration: 0.2s;
+}
+
 .window-button-96 > StWidget {
   -st-natural-width: 96px;
   min-width: 24px;

@@ -1,24 +1,91 @@
 //    Task Up
 //    GNOME Shell extension
-//    @fthx 2023
+//    @fthx 2024
 
 
 import Clutter from 'gi://Clutter';
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
-import {AppMenu} from 'resource:///org/gnome/shell/ui/appMenu.js';
+import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 
-import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
+const WORKSPACES_SCHEMA = 'org.gnome.desktop.wm.preferences';
+const WORKSPACES_KEY = 'num-workspaces';
 
 const ICON_SIZE = 18; // px
 const TOOLTIP_VERTICAL_PADDING = 4; // px
+
+const WorkspaceButton = GObject.registerClass(
+class WorkspaceButton extends PanelMenu.Button {
+    _init(settings, workspace_index, task_list) {
+        super._init();
+
+        this._settings = settings;
+        this._workspace_index = workspace_index;
+        this._workspace = global.workspace_manager.get_workspace_by_index(this._workspace_index)
+        this._task_list = task_list;
+
+        this._box = new St.BoxLayout({style_class: 'panel-button'});
+        this.add_style_class_name('workspace-button');
+
+        this._text = (this._workspace_index + 1).toString();
+        this._label = new St.Label({text: this._text, y_align: Clutter.ActorAlign.CENTER});
+        this._box.add_child(this._label);
+
+        this.add_child(this._box);
+
+        this._id = 'workspace-button-' + this._workspace;
+
+        global.workspace_manager.connectObject(
+            'active-workspace-changed', this._update_visibility.bind(this),
+            'workspace-removed', (workspace_manager, removed_workspace_index) => {
+                this._on_workspace_removed(removed_workspace_index);
+            },
+            this);
+    }
+
+    _update_visibility() {
+        if (this._workspace_index == global.workspace_manager.get_active_workspace_index() ) {
+            this.set_opacity(255);
+        } else {
+            this.set_opacity(this._settings.get_int('buttons-opacity'));
+        }
+    }
+
+    _on_workspace_removed(removed_workspace_index) {
+        if (this._workspace_index == removed_workspace_index) {
+            this._destroy();
+        } else {
+            if (this._task_list) {
+                this._task_list.delete(this._workspace_index);
+
+                this._workspace_index = this._workspace.index();
+                this._text = (this._workspace_index + 1).toString();
+                this._label.set_text(this._text);
+                this._task_list.set(this._workspace_index, this);
+            }
+        }
+    }
+
+    _destroy() {
+        global.workspace_manager.disconnectObject(this);
+
+        delete Main.panel.statusArea[this._id];
+        if (this._task_list) {
+            this._task_list.delete(this._workspace_index);
+        }
+
+        super.destroy();
+    }
+});
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
@@ -120,11 +187,13 @@ class TaskButton extends PanelMenu.Button {
 
     _update_visibility() {
         if (this._is_on_active_workspace()) {
-            this._icon.set_opacity(255);
-            this._label.set_opacity(255);
+            this.set_opacity(255);
+            //this._icon.set_opacity(255);
+            //this._label.set_opacity(255);
         } else {
-            this._icon.set_opacity(this._settings.get_int('buttons-opacity'));
-            this._label.set_opacity(this._settings.get_int('buttons-opacity'));
+            this.set_opacity(this._settings.get_int('buttons-opacity'));
+            //this._icon.set_opacity(this._settings.get_int('buttons-opacity'));
+            //this._label.set_opacity(this._settings.get_int('buttons-opacity'));
         }
 
         if (this._settings.get_boolean('active-workspace')) {
@@ -146,7 +215,9 @@ class TaskButton extends PanelMenu.Button {
 
         delete Main.panel.statusArea[this._id];
         this.menu = null;
-        this._task_list.delete(this._window);
+        if (this._task_list) {
+            this._task_list.delete(this._window);
+        }
 
         super.destroy();
     }
@@ -173,6 +244,7 @@ class TaskBar extends GObject.Object {
         Main.panel._leftBox.add_style_class_name('leftbox-reduced-padding');
         this._task_position_offset = 1;
         this._show_places_icon(true);
+        this._show_activities(this._settings.get_boolean('show-activities'));
 
         this._task_tooltip = new TaskTooltip();
 
@@ -182,7 +254,7 @@ class TaskBar extends GObject.Object {
     }
 
     _make_task_button(window) {
-        if (!window || this._task_list.has(window)) {
+        if (!window || (this._task_list && this._task_list.has(window))) {
             return;
         }
 
@@ -198,17 +270,49 @@ class TaskBar extends GObject.Object {
         this._task_list.set(window, task_button);
 
         task_button.connectObject(
-            'button-press-event', (task_button, event) => this._on_button_click(task_button, event),
-            'notify::hover', (task_button) => this._on_button_hover(task_button),
+            'button-press-event', (task_button, event) => this._on_task_button_click(task_button, event),
+            'notify::hover', (task_button) => this._on_task_button_hover(task_button),
+            this);
+        task_button._window.connectObject('workspace-changed', () => this._on_workspace_changed(task_button));
+    }
+
+    _make_workspace_button(workspace_index) {
+        if (this._task_list && this._task_list.has(workspace_index)) {
+            return;
+        }
+
+        let workspace_button = new WorkspaceButton(this._settings, workspace_index, this._task_list);
+        workspace_button._index = [workspace_index, 0];
+
+        let position = this._new_button_position(workspace_button);
+        Main.panel.addToStatusArea(workspace_button._id, workspace_button, position, 'left');
+        this._task_list.set(workspace_index, workspace_button);
+
+        workspace_button.connectObject(
+            'button-press-event', (workspace_button, event) => this._on_workspace_button_click(workspace_button, event),
             this);
     }
 
-    _new_button_position(new_task_button) {
+    _on_workspace_changed(task_button) {
+        if (!task_button._window || !task_button._window.get_workspace()) {
+            return;
+        }
+
+        delete Main.panel.statusArea[task_button._id];
+
+        let new_workspace_index = task_button._window.get_workspace().index();
+        task_button._index = [new_workspace_index, task_button._window.get_id()];
+
+        let position = this._new_button_position(task_button);
+        Main.panel.addToStatusArea(task_button._id, task_button, position, 'left');
+    }
+
+    _new_button_position(new_button) {
         let task_button_values = this._task_list.values();
         let task_position = 0;
 
         for (let task_button of task_button_values) {
-            if (new_task_button._index > task_button._index) {
+            if (new_button._index > task_button._index) {
                 task_position++;
             }
         }
@@ -217,33 +321,64 @@ class TaskBar extends GObject.Object {
     }
 
     _destroy_taskbar() {
-        for (let window of this._task_list.keys()) {
-            let task_button = this._task_list.get(window);
+        for (let item of this._task_list.keys()) {
+            let button = this._task_list.get(item);
 
-            task_button.disconnectObject(this);
-            task_button._destroy();
+            button.disconnectObject(this);
+
+            if (button instanceof WorkspaceButton) {
+                button._destroy(button._workspace_index);
+            } else {
+                button._destroy();
+            }
         }
 
         this._task_list.clear();
     }
 
     _make_taskbar() {
+        if (this._taskbar_updating) {
+            return;
+        }
+        this._taskbar_updating = true;
+
         this._destroy_taskbar();
 
         let workspaces_number = global.workspace_manager.get_n_workspaces();
+
         for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
-            let windows_list = global.workspace_manager.get_workspace_by_index(workspace_index).list_windows().sort(this._sort_windows);
+            let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
+            if (!this._settings.get_boolean('active-workspace')) {
+                this._make_workspace_button(workspace_index);
+            }
+
+            let windows_list = workspace.list_windows().sort(this._sort_windows);
             for (let window of windows_list) {
                 this._make_task_button(window);
             }
         }
+
+        this._taskbar_updating = false;
     }
 
     _sort_windows(w1, w2) {
         return w1.get_id() - w2.get_id();
     }
 
-    _on_button_click(task_button, event) {
+    _on_workspace_button_click(workspace_button, event) {
+        let workspace_index = workspace_button._workspace_index;
+
+        if (event.get_button() == Clutter.BUTTON_PRIMARY) {
+            if (workspace_index == global.workspace_manager.get_active_workspace_index()) {
+                Main.overview.toggle();
+            } else {
+                global.workspace_manager.get_workspace_by_index(workspace_index).activate(global.get_current_time());
+                Main.overview.show();
+            }
+        }
+    }
+
+    _on_task_button_click(task_button, event) {
         if (event.get_button() == Clutter.BUTTON_PRIMARY) {
             task_button.menu.close();
 
@@ -270,7 +405,7 @@ class TaskBar extends GObject.Object {
         }
     }
 
-    _on_button_hover(task_button) {
+    _on_task_button_hover(task_button) {
         if (!task_button || !task_button._window) {
             return;
         }
@@ -308,6 +443,7 @@ class TaskBar extends GObject.Object {
 
     _show_places_icon(show) {
         let places_indicator = Main.panel.statusArea['places-menu'];
+
         if (places_indicator) {
             this._task_position_offset++;
 
@@ -322,15 +458,31 @@ class TaskBar extends GObject.Object {
         }
     }
 
+    _show_activities(show) {
+        let activities_indicator = Main.panel.statusArea['activities'];
+
+        if (activities_indicator) {
+            activities_indicator.visible = show;
+        }
+    }
+
     _connect_signals() {
         global.display.connectObject('window-created', (display, window) => this._make_task_button(window), this);
-        Main.extensionManager.connectObject('extension-state-changed', () => this._show_places_icon(true), this);
+        global.workspace_manager.connectObject('workspace-added', (workspace_manager, workspace_index) => this._make_workspace_button(workspace_index), this);
 
-        this._settings.connectObject('changed', this._make_taskbar.bind(this), this);
+        Main.extensionManager.connectObject('extension-state-changed', () => this._show_places_icon(true), this);
+        this._wm_settings = new Gio.Settings({schema: WORKSPACES_SCHEMA});
+        this._wm_settings.connectObject(`changed::${WORKSPACES_KEY}`, this._make_taskbar.bind(this), this);
+
+        this._settings.connectObject(
+            'changed', this._make_taskbar.bind(this),
+            'changed', () => this._show_activities(this._settings.get_boolean('show-activities')),
+            this);
     }
 
     _disconnect_signals() {
         this._settings.disconnectObject(this);
+        this._wm_settings.disconnectObject(this);
 
         Main.extensionManager.disconnectObject(this);
         Main.layoutManager.disconnectObject(this);

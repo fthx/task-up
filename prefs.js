@@ -19,6 +19,12 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         const group1 = new Adw.PreferencesGroup();
         page.add(group1);
 
+        const row_activities = new Adw.SwitchRow({
+            title: 'Show activities indicator',
+        });
+        group1.add(row_activities);
+        window._settings.bind('show-activities', row_activities, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         const row_workspace = new Adw.SwitchRow({
             title: 'Show tasks on active workspace only',
         });
@@ -37,43 +43,47 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group1.add(row_titles);
         window._settings.bind('show-titles', row_titles, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+
+        const group2 = new Adw.PreferencesGroup();
+        page.add(group2);
+
         const row_tooltip = new Adw.SwitchRow({
             title: 'Show tooltip on hover',
         });
-        group1.add(row_tooltip);
+        group2.add(row_tooltip);
         window._settings.bind('show-tooltip', row_tooltip, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_window = new Adw.SwitchRow({
             title: 'Raise window on hover',
         });
-        group1.add(row_window);
+        group2.add(row_window);
         window._settings.bind('raise-window', row_window, 'active', Gio.SettingsBindFlags.DEFAULT);
 
 
-        const group2 = new Adw.PreferencesGroup();
-        page.add(group2);
+        const group3 = new Adw.PreferencesGroup();
+        page.add(group3);
 
         const row_border = new Adw.SwitchRow({
             title: 'Button gradient',
         });
-        group2.add(row_border);
+        group3.add(row_border);
         window._settings.bind('border-top', row_border, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_colored = new Adw.SwitchRow({
             title: 'Colored icons',
         });
-        group2.add(row_colored);
+        group3.add(row_colored);
         window._settings.bind('colored-icons', row_colored, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_symbolic = new Adw.SwitchRow({
             title: 'Symbolic icons',
         });
-        group2.add(row_symbolic);
+        group3.add(row_symbolic);
         window._settings.bind('symbolic-icons', row_symbolic, 'active', Gio.SettingsBindFlags.DEFAULT);
 
 
-        const group3 = new Adw.PreferencesGroup();
-        page.add(group3);
+        const group4 = new Adw.PreferencesGroup();
+        page.add(group4);
 
         const adjustment_size = new Gtk.Adjustment({
             lower: 96,
@@ -85,7 +95,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Button maximum size (default: 192 px)',
             adjustment: adjustment_size
         });
-        group3.add(row_size);
+        group4.add(row_size);
         window._settings.bind('buttons-size', row_size, 'value', Gio.SettingsBindFlags.DEFAULT);
 
         const adjustment_opacity = new Gtk.Adjustment({
@@ -98,7 +108,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Button not on active workspace opacity (default: 160)',
             adjustment: adjustment_opacity
         });
-        group3.add(row_opacity);
+        group4.add(row_opacity);
         window._settings.bind('buttons-opacity', row_opacity, 'value', Gio.SettingsBindFlags.DEFAULT);
 
         const raise_delay = new Gtk.Adjustment({
@@ -111,7 +121,7 @@ export default class TaskUpPreferences extends ExtensionPreferences {
             title: 'Delay before raising window and/or tooltip on hover (default: 500 ms)',
             adjustment: raise_delay
         });
-        group3.add(row_raise);
+        group4.add(row_raise);
         window._settings.bind('raise-delay', row_raise, 'value', Gio.SettingsBindFlags.DEFAULT);
     }
 }
