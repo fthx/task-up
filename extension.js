@@ -11,9 +11,11 @@ import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
 
+import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 
 import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
 
@@ -22,6 +24,48 @@ const WORKSPACES_KEY = 'num-workspaces';
 
 const ICON_SIZE = 18; // px
 const TOOLTIP_VERTICAL_PADDING = 4; // px
+
+
+const FavoritesMenu = GObject.registerClass(
+class FavoritesMenu extends PanelMenu.Button {
+    _init() {
+        super._init(0.0);
+
+        this._box = new St.BoxLayout({});
+        this._icon = new St.Icon({icon_name: 'starred-symbolic', style_class: 'system-status-icon'});
+        this._box.add_child(this._icon);
+        this.add_child(this._box);
+
+        this._populate();
+        AppFavorites.getAppFavorites().connectObject('changed', this._populate.bind(this), this);
+    }
+
+    _populate() {
+        if (this.menu) {
+            this.menu.removeAll();
+        }
+
+        let favorites = AppFavorites.getAppFavorites().getFavorites();
+
+        for (let index = 0; index < favorites.length; ++index) {
+            let favorite = favorites[index];
+            let icon = favorite.create_icon_texture(ICON_SIZE);
+
+            let item = new PopupMenu.PopupImageMenuItem(favorite.get_name(), icon.get_gicon());
+
+            this.menu.addMenuItem(item);
+            item.connectObject('activate', () => favorite.open_new_window(-1));
+        }
+    }
+
+    _destroy() {
+        AppFavorites.getAppFavorites().disconnectObject(this);
+
+        delete Main.panel.statusArea['favorites-menu'];
+
+        super.destroy();
+    }
+});
 
 const WorkspaceButton = GObject.registerClass(
 class WorkspaceButton extends PanelMenu.Button {
@@ -35,7 +79,6 @@ class WorkspaceButton extends PanelMenu.Button {
 
         this._box = new St.BoxLayout({style_class: 'panel-button'});
         this.add_style_class_name('workspace-button');
-
         this._text = (this._workspace_index + 1).toString();
         this._label = new St.Label({text: this._text, y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._label);
@@ -98,12 +141,10 @@ class TaskButton extends PanelMenu.Button {
         this._desaturate_effect = new Clutter.DesaturateEffect();
 
         this._box = new St.BoxLayout({style_class: 'panel-button'});
-
         this._icon = new St.Icon();
         this._icon.set_icon_size(ICON_SIZE);
         this._icon.set_fallback_gicon(null);
         this._box.add_child(this._icon);
-
         this._label = new St.Label({y_align: Clutter.ActorAlign.CENTER});
         this._box.add_child(this._label);
 
@@ -242,9 +283,14 @@ class TaskBar extends GObject.Object {
         this._settings = settings;
 
         Main.panel._leftBox.add_style_class_name('leftbox-reduced-padding');
-        this._task_position_offset = 1;
+        this._task_position_offset = 2;
+
         this._show_places_icon(true);
         this._show_activities(this._settings.get_boolean('show-activities'));
+
+        this._favorites_menu = new FavoritesMenu();
+        Main.panel.addToStatusArea('favorites-menu', this._favorites_menu, 1, 'left');
+        this._show_favorites(this._settings.get_boolean('show-favorites'));
 
         this._task_tooltip = new TaskTooltip();
 
@@ -466,6 +512,12 @@ class TaskBar extends GObject.Object {
         }
     }
 
+    _show_favorites(show) {
+        if (this._favorites_menu) {
+            this._favorites_menu.visible = show;
+        }
+    }
+
     _connect_signals() {
         global.display.connectObject('window-created', (display, window) => this._make_task_button(window), this);
         global.workspace_manager.connectObject('workspace-added', (workspace_manager, workspace_index) => this._make_workspace_button(workspace_index), this);
@@ -477,6 +529,7 @@ class TaskBar extends GObject.Object {
         this._settings.connectObject(
             'changed', this._make_taskbar.bind(this),
             'changed', () => this._show_activities(this._settings.get_boolean('show-activities')),
+            'changed', () => this._show_favorites(this._settings.get_boolean('show-favorites')),
             this);
     }
 
@@ -504,8 +557,12 @@ class TaskBar extends GObject.Object {
         this._task_list = null;
         this._task_position_offset = null;
 
+        this._favorites_menu._destroy();
+
         this._show_places_icon(false);
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
+
+        this._show_activities(true);
 
         this._settings = null;
     }

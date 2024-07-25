@@ -25,6 +25,12 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group1.add(row_activities);
         window._settings.bind('show-activities', row_activities, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        const row_favorites = new Adw.SwitchRow({
+            title: 'Show favorites menu',
+        });
+        group1.add(row_favorites);
+        window._settings.bind('show-favorites', row_favorites, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         const row_workspace = new Adw.SwitchRow({
             title: 'Show tasks on active workspace only',
         });
