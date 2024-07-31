@@ -64,7 +64,7 @@ class FavoritesMenu extends PanelMenu.Button {
     _destroy() {
         AppFavorites.getAppFavorites().disconnectObject(this);
 
-        //delete Main.panel.statusArea['favorites-menu'];
+        delete Main.panel.statusArea['favorites-menu'];
 
         super.destroy();
     }
@@ -328,6 +328,7 @@ class TaskButton extends PanelMenu.Button {
 
     _update_app() {
         this._app = Shell.WindowTracker.get_default().get_window_app(this._window);
+
         if (this._app) {
             this._icon.set_gicon(this._app.get_icon());
             this.menu.setApp(this._app);
@@ -454,8 +455,9 @@ class TaskBar extends GObject.Object {
     }
 
     _destroy_taskbar() {
-        for (let bin of Main.panel._leftBox) {
+        for (let bin of Main.panel._leftBox.get_children()) {
             let button = bin.first_child;
+
             if (button instanceof TaskButton || button instanceof WorkspaceButton) {
                 button._destroy();
                 button = null;
@@ -474,6 +476,10 @@ class TaskBar extends GObject.Object {
         for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
             let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
 
+            if (this._settings.get_boolean('active-workspace') && workspace != global.workspace_manager.get_active_workspace()) {
+                continue;
+            }
+
             if (!this._settings.get_boolean('active-workspace')) {
                 this._make_workspace_button(workspace_index);
             }
@@ -490,9 +496,8 @@ class TaskBar extends GObject.Object {
         let places_indicator = Main.panel.statusArea['places-menu'];
 
         if (places_indicator) {
-            TASK_POSITION_OFFSET = 3;
-
             places_indicator.remove_child(places_indicator.first_child);
+
             if (show) {
                 let places_icon = new St.Icon({icon_name: 'folder-symbolic', style_class: 'system-status-icon'});
                 places_indicator.add_child(places_icon);
