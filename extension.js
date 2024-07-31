@@ -459,28 +459,32 @@ class TaskBar extends GObject.Object {
     _make_taskbar() {
         this._destroy_taskbar();
 
-        this._show_activities(this._settings.get_boolean('show-activities'));
-        this._show_favorites(this._settings.get_boolean('show-favorites'));
+        this._make_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
+            this._show_activities(this._settings.get_boolean('show-activities'));
+            this._show_favorites(this._settings.get_boolean('show-favorites'));
 
-        let workspaces_number = global.workspace_manager.get_n_workspaces();
+            let workspaces_number = global.workspace_manager.n_workspaces;
 
-        for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
-            let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
+            for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
+                let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
 
-            if (this._settings.get_boolean('active-workspace') && workspace != global.workspace_manager.get_active_workspace()) {
-                continue;
+                if (this._settings.get_boolean('active-workspace') && workspace != global.workspace_manager.get_active_workspace()) {
+                    continue;
+                }
+
+                if (!this._settings.get_boolean('active-workspace')) {
+                    this._make_workspace_button(workspace_index);
+                }
+
+                let windows_list = workspace.list_windows();
+
+                for (let window of windows_list) {
+                    this._make_task_button(window);
+                }
             }
 
-            if (!this._settings.get_boolean('active-workspace')) {
-                this._make_workspace_button(workspace_index);
-            }
-
-            let windows_list = workspace.list_windows();
-
-            for (let window of windows_list) {
-                this._make_task_button(window);
-            }
-        }
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _show_places_icon(show) {
@@ -500,7 +504,7 @@ class TaskBar extends GObject.Object {
     }
 
     _show_activities(show) {
-        let activities_indicator = Main.panel.statusArea['activities'];
+        let activities_indicator = Main.panel.statusArea.activities;
 
         if (activities_indicator) {
             activities_indicator.visible = show;
@@ -534,6 +538,11 @@ class TaskBar extends GObject.Object {
     }
 
     _destroy() {
+        if (this._make_taskbar_timeout) {
+            GLib.source_remove(this._make_taskbar_timeout);
+            this._make_taskbar_timeout = null;
+        }
+
         this._disconnect_signals();
         this._destroy_taskbar();
 
