@@ -64,8 +64,6 @@ class FavoritesMenu extends PanelMenu.Button {
     _destroy() {
         AppFavorites.getAppFavorites().disconnectObject(this);
 
-        //delete Main.panel.statusArea['favorites-menu'];
-
         super.destroy();
     }
 });
@@ -99,9 +97,7 @@ class WorkspaceButton extends PanelMenu.Button {
 
         global.workspace_manager.connectObject(
             'active-workspace-changed', this._update_visibility.bind(this),
-            'workspace-removed', (workspace_manager, removed_workspace_index) => {
-                this._on_workspace_removed(removed_workspace_index);
-            },
+            'workspace-removed', (workspace_manager, removed_workspace_index) => this._on_workspace_removed(removed_workspace_index),
             this);
 
         this.connectObject(
@@ -161,15 +157,13 @@ class WorkspaceButton extends PanelMenu.Button {
             this._text = (this._workspace_index + 1).toString();
             this._label.set_text(this._text);
             this._index = [this._workspace_index, 0];
+
+            this._update_visibility();
         }
     }
 
     _destroy() {
         global.workspace_manager.disconnectObject(this);
-
-        /*if (Main.panel.statusArea[this._id]) {
-            delete Main.panel.statusArea[this._id];
-        }*/
 
         super.destroy();
     }
@@ -405,11 +399,6 @@ class TaskButton extends PanelMenu.Button {
         this._task_tooltip = null;
 
         this._desaturate_effect = null;
-
-        /*if (Main.panel.statusArea[this._id]) {
-            delete Main.panel.statusArea[this._id];
-        }
-        this.menu = null;*/
 
         super.destroy();
     }
