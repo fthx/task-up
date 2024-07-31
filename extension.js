@@ -319,11 +319,6 @@ class TaskButton extends PanelMenu.Button {
         }
     }
 
-    _is_on_active_workspace() {
-        //return this._window.get_workspace() == global.workspace_manager.get_active_workspace();
-        return this._window.located_on_workspace(global.workspace_manager.get_active_workspace());
-    }
-
     _update_title() {
         this._label.set_text('  ' + this._window.get_title());
     }
@@ -380,11 +375,14 @@ class TaskButton extends PanelMenu.Button {
     _update_visibility() {
         this.visible = !this._window.is_skip_taskbar();
 
+        let active_workspace = global.workspace_manager.get_active_workspace()
+        let window_is_on_active_workspace = this._window.located_on_workspace(active_workspace);
+
         if (this._settings.get_boolean('active-workspace')) {
-            this.visible = this._is_on_active_workspace();
+            this.visible = window_is_on_active_workspace;
         }
 
-        if (this._is_on_active_workspace()) {
+        if (window_is_on_active_workspace) {
             this.set_opacity(255);
         } else {
             this.set_opacity(this._settings.get_int('buttons-opacity'));
