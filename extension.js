@@ -64,7 +64,7 @@ class FavoritesMenu extends PanelMenu.Button {
     _destroy() {
         AppFavorites.getAppFavorites().disconnectObject(this);
 
-        delete Main.panel.statusArea['favorites-menu'];
+        //delete Main.panel.statusArea['favorites-menu'];
 
         super.destroy();
     }
@@ -220,6 +220,7 @@ class TaskButton extends PanelMenu.Button {
             'notify::title', this._update_title.bind(this),
             'notify::wm-class', this._update_app.bind(this),
             'notify::gtk-application-id', this._update_app.bind(this),
+            'notify::skip-taskbar', this._update_visibility.bind(this),
             'unmanaging', this._destroy.bind(this),
             'workspace-changed', this._on_workspace_changed.bind(this),
             this);
@@ -319,7 +320,8 @@ class TaskButton extends PanelMenu.Button {
     }
 
     _is_on_active_workspace() {
-        return this._window.get_workspace() == global.workspace_manager.get_active_workspace();
+        //return this._window.get_workspace() == global.workspace_manager.get_active_workspace();
+        return this._window.located_on_workspace(global.workspace_manager.get_active_workspace());
     }
 
     _update_title() {
@@ -376,14 +378,16 @@ class TaskButton extends PanelMenu.Button {
     }
 
     _update_visibility() {
+        this.visible = !this._window.is_skip_taskbar();
+
+        if (this._settings.get_boolean('active-workspace')) {
+            this.visible = this._is_on_active_workspace();
+        }
+
         if (this._is_on_active_workspace()) {
             this.set_opacity(255);
         } else {
             this.set_opacity(this._settings.get_int('buttons-opacity'));
-        }
-
-        if (this._settings.get_boolean('active-workspace')) {
-            this.visible = this._is_on_active_workspace();
         }
     }
 
@@ -443,7 +447,7 @@ class TaskBar extends GObject.Object {
     }
 
     _make_task_button(window) {
-        if (!window || window.is_skip_taskbar() || (window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
+        if (!window || window.is_skip_taskbar() || window.get_window_type() == Meta.WindowType.MODAL_DIALOG) {
             return;
         }
 
