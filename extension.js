@@ -25,7 +25,6 @@ const WORKSPACES_KEY = 'num-workspaces';
 
 const ICON_SIZE = 18; // px
 const TOOLTIP_VERTICAL_PADDING = 4; // px
-const TASK_POSITION_OFFSET = 2; // activities and favorites
 
 
 const FavoritesMenu = GObject.registerClass(
@@ -65,7 +64,7 @@ class FavoritesMenu extends PanelMenu.Button {
     _destroy() {
         AppFavorites.getAppFavorites().disconnectObject(this);
 
-        delete Main.panel.statusArea['favorites-menu'];
+        //delete Main.panel.statusArea['favorites-menu'];
 
         super.destroy();
     }
@@ -73,13 +72,12 @@ class FavoritesMenu extends PanelMenu.Button {
 
 const WorkspaceButton = GObject.registerClass(
 class WorkspaceButton extends PanelMenu.Button {
-    _init(settings, workspace_index, task_list) {
+    _init(settings, workspace_index) {
         super._init();
 
         this._settings = settings;
         this._workspace_index = workspace_index;
         this._workspace = global.workspace_manager.get_workspace_by_index(this._workspace_index)
-        this._task_list = task_list;
 
         this._box = new St.BoxLayout({style_class: 'panel-button'});
         this.add_style_class_name('workspace-button');
@@ -89,11 +87,13 @@ class WorkspaceButton extends PanelMenu.Button {
 
         this.add_child(this._box);
 
-        this._id = 'workspace-button-' + this._workspace;
+        this._update_visibility();
 
         this._index = [this._workspace_index, 0];
-        Main.panel.addToStatusArea(this._id, this, this._new_position(), 'left');
-        this._task_list.set(this._workspace_index, this);
+        this._id = 'workspace-button-' + this._workspace;
+        if (!Main.panel.statusArea[this._id]) {
+            Main.panel.addToStatusArea(this._id, this, this._new_position(), 'left');
+        }
 
         this._delegate = this;
 
@@ -115,6 +115,7 @@ class WorkspaceButton extends PanelMenu.Button {
             source._window.change_workspace_by_index(this._workspace_index, false);
             source._on_workspace_changed();
             source._window.activate(global.get_current_time());
+            source._window.unminimize();
 
             return false;
         }
@@ -123,15 +124,14 @@ class WorkspaceButton extends PanelMenu.Button {
     _new_position() {
         let position = 0;
 
-        if (this._task_list) {
-            for (let task_button of this._task_list.values()) {
-                if (this._index > task_button._index) {
-                    position++;
-                }
+        for (let bin of Main.panel._leftBox) {
+            let button = bin.first_child;
+            if (!button || !button._index || this._index > button._index) {
+                position++;
             }
         }
 
-        return position + TASK_POSITION_OFFSET;
+        return position;
     }
 
     _on_click(event) {
@@ -157,24 +157,19 @@ class WorkspaceButton extends PanelMenu.Button {
         if (this._workspace_index == removed_workspace_index) {
             this._destroy();
         } else {
-            if (this._task_list) {
-                this._task_list.delete(this._workspace_index);
-
-                this._workspace_index = this._workspace.index();
-                this._text = (this._workspace_index + 1).toString();
-                this._label.set_text(this._text);
-                this._task_list.set(this._workspace_index, this);
-            }
+            this._workspace_index = this._workspace.index();
+            this._text = (this._workspace_index + 1).toString();
+            this._label.set_text(this._text);
+            this._index = [this._workspace_index, 0];
         }
     }
 
     _destroy() {
         global.workspace_manager.disconnectObject(this);
 
-        delete Main.panel.statusArea[this._id];
-        if (this._task_list) {
-            this._task_list.delete(this._workspace_index);
-        }
+        /*if (Main.panel.statusArea[this._id]) {
+            delete Main.panel.statusArea[this._id];
+        }*/
 
         super.destroy();
     }
@@ -182,12 +177,13 @@ class WorkspaceButton extends PanelMenu.Button {
 
 const TaskButton = GObject.registerClass(
 class TaskButton extends PanelMenu.Button {
-    _init(settings, window, task_list) {
+    _init(settings, window) {
         super._init();
 
         this._settings = settings;
         this._window = window;
-        this._task_list = task_list;
+        this._workspace_index = this._window.get_workspace().index();
+
         this._desaturate_effect = new Clutter.DesaturateEffect();
 
         this._box = new St.BoxLayout({style_class: 'panel-button'});
@@ -199,7 +195,6 @@ class TaskButton extends PanelMenu.Button {
         this._box.add_child(this._label);
 
         this.add_child(this._box);
-
         this.setMenu(new AppMenu(this));
 
         this._update_title();
@@ -210,11 +205,11 @@ class TaskButton extends PanelMenu.Button {
 
         this._task_tooltip = new TaskTooltip();
 
-        this._id = 'task-button-' + this._window.get_id();
-
-        this._index = [this._window.get_workspace().index(),this._window.get_id()];
-        this._on_workspace_changed();
-        this._task_list.set(this._window, this);
+        this._id = 'task-button-' + this._window;
+        this._index = [this._workspace_index, this._window.get_id()];
+        if (!Main.panel.statusArea[this._id]) {
+            Main.panel.addToStatusArea(this._id, this, this._new_position(), 'left');
+        }
 
         this._delegate = this;
         this._draggable = DND.makeDraggable(this, {dragActorOpacity: this._settings.get_int('buttons-opacity')});
@@ -241,26 +236,23 @@ class TaskButton extends PanelMenu.Button {
             return;
         }
 
-        delete Main.panel.statusArea[this._id];
+        this._workspace_index = this._window.get_workspace().index();
+        this._index = [this._workspace_index, this._window.get_id()];
 
-        let new_workspace_index = this._window.get_workspace().index();
-        this._index = [new_workspace_index, this._window.get_id()];
-
-        Main.panel.addToStatusArea(this._id, this, this._new_position(), 'left');
+        Main.panel._addToPanelBox(this._id, this, this._new_position(), Main.panel._leftBox)
     }
 
     _new_position() {
         let position = 0;
 
-        if (this._task_list) {
-            for (let task_button of this._task_list.values()) {
-                if (this._index > task_button._index) {
-                    position++;
-                }
+        for (let bin of Main.panel._leftBox) {
+            let button = bin.first_child;
+            if (!button || !button._index || this._index > button._index) {
+                position++;
             }
         }
 
-        return position + TASK_POSITION_OFFSET;
+        return position;
     }
 
     _on_click(event) {
@@ -395,11 +387,6 @@ class TaskButton extends PanelMenu.Button {
     }
 
     _destroy() {
-        if (this._is_destroying) {
-            return;
-        }
-        this._is_destroying = true;
-
         if (this._raise_window_timeout) {
             GLib.source_remove(this._raise_window_timeout);
             this._raise_window_timeout = null;
@@ -409,16 +396,17 @@ class TaskButton extends PanelMenu.Button {
         global.workspace_manager.disconnectObject(this);
         this._window.disconnectObject(this);
 
-        this._task_tooltip.destroy();
+        if (this._task_tooltip) {
+            this._task_tooltip.destroy();
+        }
         this._task_tooltip = null;
 
         this._desaturate_effect = null;
 
-        delete Main.panel.statusArea[this._id];
-        this.menu = null;
-        if (this._task_list) {
-            this._task_list.delete(this._window);
+        /*if (Main.panel.statusArea[this._id]) {
+            delete Main.panel.statusArea[this._id];
         }
+        this.menu = null;*/
 
         super.destroy();
     }
@@ -449,47 +437,33 @@ class TaskBar extends GObject.Object {
         this._favorites_menu = new FavoritesMenu();
         Main.panel.addToStatusArea('favorites-menu', this._favorites_menu, 1, 'left');
 
-        this._task_list = new Map();
         this._make_taskbar();
         this._connect_signals();
     }
 
     _make_task_button(window) {
-        if (!window || (this._task_list && this._task_list.has(window))) {
+        if (!window || window.is_skip_taskbar() || (window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
             return;
         }
 
-        if (window.is_skip_taskbar() || (window.get_window_type() == Meta.WindowType.MODAL_DIALOG)) {
-            return;
-        }
-
-        new TaskButton(this._settings, window, this._task_list);
+        new TaskButton(this._settings, window);
     }
 
     _make_workspace_button(workspace_index) {
-        if (this._task_list && this._task_list.has(workspace_index)) {
-            return;
-        }
-
-        new WorkspaceButton(this._settings, workspace_index, this._task_list);
+        new WorkspaceButton(this._settings, workspace_index);
     }
 
     _destroy_taskbar() {
-        for (let item of this._task_list.keys()) {
-            let button = this._task_list.get(item);
-
-            button._destroy();
+        for (let bin of Main.panel._leftBox) {
+            let button = bin.first_child;
+            if (button instanceof TaskButton || button instanceof WorkspaceButton) {
+                button._destroy();
+                button = null;
+            }
         }
-
-        this._task_list.clear();
     }
 
     _make_taskbar() {
-        if (this._taskbar_updating) {
-            return;
-        }
-        this._taskbar_updating = true;
-
         this._destroy_taskbar();
 
         this._show_activities(this._settings.get_boolean('show-activities'));
@@ -499,21 +473,17 @@ class TaskBar extends GObject.Object {
 
         for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
             let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
+
             if (!this._settings.get_boolean('active-workspace')) {
                 this._make_workspace_button(workspace_index);
             }
 
-            let windows_list = workspace.list_windows().sort(this._sort_windows);
+            let windows_list = workspace.list_windows();
+
             for (let window of windows_list) {
                 this._make_task_button(window);
             }
         }
-
-        this._taskbar_updating = false;
-    }
-
-    _sort_windows(w1, w2) {
-        return w1.get_id() - w2.get_id();
     }
 
     _show_places_icon(show) {
@@ -570,7 +540,6 @@ class TaskBar extends GObject.Object {
     _destroy() {
         this._disconnect_signals();
         this._destroy_taskbar();
-        this._task_list = null;
 
         this._favorites_menu._destroy();
 
