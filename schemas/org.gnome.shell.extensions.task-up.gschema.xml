@@ -13,6 +13,11 @@
         <summary>Show favorites menu</summary>
     </key>
 
+    <key type="b" name="show-workspaces">
+        <default>true</default>
+        <summary>Show workspaces</summary>
+    </key>
+
     <key type="b" name="active-workspace">
         <default>false</default>
         <summary>Show tasks on active workspace only</summary>
