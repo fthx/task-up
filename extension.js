@@ -462,6 +462,7 @@ class TaskBar extends GObject.Object {
         this._make_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
             this._show_activities(this._settings.get_boolean('show-activities'));
             this._show_favorites(this._settings.get_boolean('show-favorites'));
+            this._move_date(this._settings.get_boolean('move-date'));
 
             let workspaces_number = global.workspace_manager.n_workspaces;
 
@@ -513,6 +514,17 @@ class TaskBar extends GObject.Object {
         }
     }
 
+    _move_date(active) {
+        let date_menu = Main.panel.statusArea.dateMenu;
+        let quick_settings_position = Main.panel._rightBox.get_children().indexOf(Main.panel.statusArea.quickSettings.container);
+
+        if (active) {
+            Main.panel._addToPanelBox('dateMenu', date_menu, quick_settings_position - 1, Main.panel._rightBox);
+        } else {
+            Main.panel._addToPanelBox('dateMenu', date_menu, -1, Main.panel._centerBox);
+        }
+    }
+
     _connect_signals() {
         global.display.connectObject('window-created', (display, window) => this._make_task_button(window), this);
         global.workspace_manager.connectObject('workspace-added', (workspace_manager, workspace_index) => this._make_workspace_button(workspace_index), this);
@@ -543,11 +555,10 @@ class TaskBar extends GObject.Object {
         this._destroy_taskbar();
 
         this._favorites_menu._destroy();
-
         this._show_places_icon(false);
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
-
         this._show_activities(true);
+        this._move_date(false);
 
         this._settings = null;
     }
