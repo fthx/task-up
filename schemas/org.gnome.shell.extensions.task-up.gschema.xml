@@ -13,6 +13,11 @@
         <summary>Show favorites menu</summary>
     </key>
 
+    <key type="b" name="move-date">
+        <default>true</default>
+        <summary>Move date/clock to the right</summary>
+    </key>
+
     <key type="b" name="show-workspaces">
         <default>true</default>
         <summary>Show workspaces</summary>
