@@ -31,11 +31,17 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group1.add(row_favorites);
         window._settings.bind('show-favorites', row_favorites, 'active', Gio.SettingsBindFlags.DEFAULT);
 
-        const row_workspace = new Adw.SwitchRow({
+        const row_workspaces = new Adw.SwitchRow({
+            title: 'Show workspaces',
+        });
+        group1.add(row_workspaces);
+        window._settings.bind('show-workspaces', row_workspaces, 'active', Gio.SettingsBindFlags.DEFAULT);
+
+        const row_active_workspace = new Adw.SwitchRow({
             title: 'Show tasks on active workspace only',
         });
-        group1.add(row_workspace);
-        window._settings.bind('active-workspace', row_workspace, 'active', Gio.SettingsBindFlags.DEFAULT);
+        group1.add(row_active_workspace);
+        window._settings.bind('active-workspace', row_active_workspace, 'active', Gio.SettingsBindFlags.DEFAULT);
 
         const row_icons = new Adw.SwitchRow({
             title: 'Show icons',
