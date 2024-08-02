@@ -457,13 +457,13 @@ class TaskBar extends GObject.Object {
     }
 
     _make_taskbar() {
+        this._show_activities(this._settings.get_boolean('show-activities'));
+        this._show_favorites(this._settings.get_boolean('show-favorites'));
+        this._move_date(this._settings.get_boolean('move-date'));
+
         this._destroy_taskbar();
 
         this._make_taskbar_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
-            this._show_activities(this._settings.get_boolean('show-activities'));
-            this._show_favorites(this._settings.get_boolean('show-favorites'));
-            this._move_date(this._settings.get_boolean('move-date'));
-
             let workspaces_number = global.workspace_manager.n_workspaces;
 
             for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
@@ -515,14 +515,19 @@ class TaskBar extends GObject.Object {
     }
 
     _move_date(active) {
-        let date_menu = Main.panel.statusArea.dateMenu;
-        let quick_settings_position = Main.panel._rightBox.get_children().indexOf(Main.panel.statusArea.quickSettings.container);
+        if (Main.sessionMode.isLocked) {
+            return;
+        }
 
         if (active) {
-            Main.panel._addToPanelBox('dateMenu', date_menu, quick_settings_position - 1, Main.panel._rightBox);
+            Main.sessionMode.panel.center = Main.sessionMode.panel.center.filter(item => item != 'dateMenu')
+            Main.sessionMode.panel.right.splice(-1, 0, 'dateMenu');
         } else {
-            Main.panel._addToPanelBox('dateMenu', date_menu, -1, Main.panel._centerBox);
+            Main.sessionMode.panel.right = Main.sessionMode.panel.right.filter(item => item != 'dateMenu')
+            Main.sessionMode.panel.center.push('dateMenu');
         }
+
+        Main.panel._updatePanel();
     }
 
     _connect_signals() {
