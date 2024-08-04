@@ -442,6 +442,10 @@ class TaskBar extends GObject.Object {
     }
 
     _make_workspace_button(workspace_index) {
+        if (!this._settings.get_boolean('show-workspaces')) {
+            return;
+        }
+
         new WorkspaceButton(this._settings, workspace_index);
     }
 
@@ -469,9 +473,7 @@ class TaskBar extends GObject.Object {
             for (let workspace_index = 0; workspace_index < workspaces_number; workspace_index++) {
                 let workspace = global.workspace_manager.get_workspace_by_index(workspace_index);
 
-                if (this._settings.get_boolean('show-workspaces')) {
-                    this._make_workspace_button(workspace_index);
-                }
+                this._make_workspace_button(workspace_index);
 
                 let windows_list = workspace.list_windows();
 
