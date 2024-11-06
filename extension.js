@@ -212,8 +212,8 @@ class TaskButton extends PanelMenu.Button {
         global.workspace_manager.connectObject('active-workspace-changed', this._update_visibility.bind(this), this);
         this._window.connectObject(
             'notify::title', this._update_title.bind(this),
-            'notify::wm-class', this._update_app.bind(this),
-            'notify::gtk-application-id', this._update_app.bind(this),
+            'notify::wm-class', this._update_app.bind(this), GObject.ConnectFlags.AFTER,
+            'notify::gtk-application-id', this._update_app.bind(this), GObject.ConnectFlags.AFTER,
             'notify::skip-taskbar', this._update_visibility.bind(this),
             'unmanaging', this._destroy.bind(this),
             'workspace-changed', this._on_workspace_changed.bind(this),
