@@ -205,8 +205,10 @@ class TaskButton extends PanelMenu.Button {
             Main.panel.addToStatusArea(this._id, this, this._new_position(), 'left');
         }
 
-        this._delegate = this;
-        this._draggable = DND.makeDraggable(this, {dragActorOpacity: this._settings.get_int('buttons-opacity')});
+        if (this._settings.get_boolean('show-workspaces')) {
+            this._delegate = this;
+            this._draggable = DND.makeDraggable(this, {dragActorOpacity: this._settings.get_int('buttons-opacity')});
+        }
 
         global.display.connectObject('notify::focus-window', this._update_focus.bind(this), this);
         global.workspace_manager.connectObject('active-workspace-changed', this._update_visibility.bind(this), this);
