@@ -22,10 +22,30 @@ import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/
 
 const WORKSPACES_SCHEMA = 'org.gnome.desktop.wm.preferences';
 const WORKSPACES_KEY = 'num-workspaces';
-
+const APP_GRID_ICON_NAME = 'view-app-grid-symbolic';
 const ICON_SIZE = 18; // px
 const TOOLTIP_VERTICAL_PADDING = 4; // px
 
+const AppGridButton = GObject.registerClass(
+class AppGridButton extends PanelMenu.Button {
+    _init() {
+        super._init(0.0);
+
+        this._app_grid_button = new St.BoxLayout({visible: true, reactive: true, can_focus: true, track_hover: true});
+        this._app_grid_button.icon = new St.Icon({icon_name: APP_GRID_ICON_NAME, style_class: 'system-status-icon'});
+        this._app_grid_button.add_child(this._app_grid_button.icon);
+        this.add_child(this._app_grid_button);
+
+        this._app_grid_button.connectObject('button-release-event', this._show_apps_page.bind(this), this);
+    }
+
+    _show_apps_page() {
+        if (Main.overview.visible)
+            Main.overview.hide();
+        else
+            Main.overview.showApps();
+    }
+});
 
 const FavoritesMenu = GObject.registerClass(
 class FavoritesMenu extends PanelMenu.Button {
@@ -428,8 +448,10 @@ class TaskBar extends GObject.Object {
 
         this._show_places_icon(true);
 
+        this._app_grid_button = new AppGridButton();
         this._favorites_menu = new FavoritesMenu();
-        Main.panel.addToStatusArea('favorites-menu', this._favorites_menu, 1, 'left');
+        Main.panel.addToStatusArea('appgrid-button', this._app_grid_button, 1, 'left');
+        Main.panel.addToStatusArea('favorites-menu', this._favorites_menu, 2, 'left');
 
         this._make_taskbar();
         this._connect_signals();
@@ -464,6 +486,7 @@ class TaskBar extends GObject.Object {
 
     _make_taskbar() {
         this._show_activities(this._settings.get_boolean('show-activities'));
+        this._show_appgrid(this._settings.get_boolean('show-appgrid'));
         this._show_favorites(this._settings.get_boolean('show-favorites'));
         this._move_date(this._settings.get_boolean('move-date'));
 
@@ -509,6 +532,12 @@ class TaskBar extends GObject.Object {
 
         if (activities_indicator) {
             activities_indicator.visible = show;
+        }
+    }
+
+    _show_appgrid(show) {
+        if (this._app_grid_button) {
+            this._app_grid_button.visible = show;
         }
     }
 
@@ -563,7 +592,8 @@ class TaskBar extends GObject.Object {
         this._disconnect_signals();
         this._destroy_taskbar();
 
-        this._favorites_menu._destroy();
+        this._app_grid_button?.destroy();
+        this._favorites_menu?._destroy();
         this._show_places_icon(false);
         Main.panel._leftBox.remove_style_class_name('leftbox-reduced-padding');
         this._show_activities(true);

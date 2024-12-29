@@ -25,6 +25,12 @@ export default class TaskUpPreferences extends ExtensionPreferences {
         group1.add(row_activities);
         window._settings.bind('show-activities', row_activities, 'active', Gio.SettingsBindFlags.DEFAULT);
 
+        const row_appgrid = new Adw.SwitchRow({
+            title: 'Show app grid button',
+        });
+        group1.add(row_appgrid);
+        window._settings.bind('show-appgrid', row_appgrid, 'active', Gio.SettingsBindFlags.DEFAULT);
+
         const row_favorites = new Adw.SwitchRow({
             title: 'Show favorites menu',
         });
