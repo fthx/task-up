@@ -8,6 +8,11 @@
         <summary>Show activities indicator</summary>
     </key>
 
+    <key type="b" name="show-appgrid">
+        <default>true</default>
+        <summary>Show app grid button</summary>
+    </key>
+
     <key type="b" name="show-favorites">
         <default>true</default>
         <summary>Show favorites menu</summary>
